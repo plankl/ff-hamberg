@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>🚒 Feuerwehr Hydrantenkarte Hamberg</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#d40000">
+  <link rel="icon" href="icon.png" type="image/png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  
+  <style>
+    /* ========== GRUNDLEGENDE STYLES ========== */
+    * { 
+      box-sizing: border-box; 
+      touch-action: manipulation;
+    }
+    
+    html, body { 
+      margin: 0; 
+      padding: 0; 
+      height: 100vh; 
+      width: 100vw;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: #1a1a1a;
+      color: #ffffff;
+    }
+    
+    /* ========== KARTEN-CONTAINER ========== */
+    #map-container { 
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      z-index: 1;
+    }
+    
+    #map { 
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* ========== TITEL ========== */
+    .map-title { 
+      position: fixed; 
+      top: 10px; 
+      left: 50%; 
+      transform: translateX(-50%); 
+      background: rgba(0, 0, 0, 0.8); 
+      backdrop-filter: blur(10px);
+      color: white;
+      padding: 8px 16px; 
+      font-size: 16px; 
+      font-weight: 600; 
+      border-radius: 8px; 
+      z-index: 1001;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    
+    /* ========== KONTROLLEN SIDEBAR (RECHTS) ========== */
+    .controls-sidebar { 
+      position: fixed; 
+      right: 10px; 
+      top: 50%; 
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 1000;
+    }
+    
+    .control-btn { 
+      background: rgba(0, 0, 0, 0.8); 
+      backdrop-filter: blur(10px);
+      color: white;
+      border: none;
+      border-radius: 8px; 
+      padding: 8px;
+      cursor: pointer; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      user-select: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      min-width: 60px;
+    }
+    
+    .control-btn .icon {
+      font-size: 20px;
+      margin-bottom: 2px;
+    }
+    
+    .control-btn .label {
+      font-size: 10px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    
+    .control-btn:hover { 
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    
+    .control-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .control-btn.active { 
+      background: #4CAF50; 
+      color: white; 
+    }
+    
+    /* ========== LEGENDE (LINKS UNTEN) ========== */
+    .legend-container {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 1000;
+      min-width: 200px;
+      max-width: 280px;
+    }
+    
+    .legend-header {
+      padding: 10px 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+    
+    .legend-header:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    
+    .toggle-icon {
+      transition: transform 0.3s ease;
+      font-size: 12px;
+    }
+    
+    .legend-content {
+      padding: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+      transition: all 0.3s ease;
+    }
+    
+    .legend-content.collapsed {
+      max-height: 0;
+      padding: 0 10px;
+      overflow: hidden;
+    }
+    
+    .legend-filters {
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .legend-items {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+    }
+    
+    .legend-icon {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+    }
+    
+    .filter-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      user-select: none;
+      flex: 1;
+    }
+    
+    .filter-checkbox input[type="checkbox"] {
+      cursor: pointer;
+    }
+    
+    .filter-checkbox:hover {
+      color: #4CAF50;
+    }
+    
+    /* ========== STATUS CONTAINER (RECHTS UNTEN) ========== */
+    .status-container { 
+      position: fixed; 
+      bottom: 20px; 
+      right: 10px; 
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 1000;
+      align-items: flex-end;
+    }
+    
+    .status-indicator { 
+      background: rgba(0, 0, 0, 0.8); 
+      backdrop-filter: blur(10px);
+      color: white;
+      padding: 6px 12px; 
+      border-radius: 15px; 
+      font-size: 12px; 
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    /* ========== OFFLINE INDIKATOR ========== */
+    .offline-indicator {
+      position: fixed;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ff9800;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      z-index: 8000;
+      display: none;
+    }
+    
+    .offline-indicator.visible {
+      display: block;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.05); }
+    }
+    
+    /* ========== POPUPS ========== */
+    .leaflet-popup-content-wrapper {
+      background: rgba(255,255,255,0.95) !important;
+      backdrop-filter: blur(10px);
+      border-radius: 8px !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+    }
+    
+    .leaflet-popup-content {
+      margin: 12px 16px !important;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    
+    .leaflet-popup-tip {
+      background: rgba(255,255,255,0.95) !important;
+    }
+    
+    /* ========== MOBILE ANPASSUNGEN ========== */
+    @media (max-width: 768px) {
+      .map-title { 
+        font-size: 14px; 
+        padding: 6px 12px;
+      }
+      
+      .controls-sidebar { 
+        right: 8px; 
+        gap: 6px;
+      }
+      
+      .control-btn { 
+        min-width: 55px;
+        padding: 6px;
+      }
+      
+      .control-btn .icon {
+        font-size: 18px;
+      }
+      
+      .control-btn .label {
+        font-size: 9px;
+      }
+      
+      .legend-container {
+        bottom: 15px;
+        left: 15px;
+        max-width: 240px;
+        font-size: 12px;
+      }
+      
+      .status-container {
+        bottom: 15px;
+        right: 8px;
+      }
+      
+      .status-indicator {
+        font-size: 11px;
+        padding: 5px 10px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .legend-container {
+        max-width: 200px;
+      }
+      
+      .control-btn {
+        min-width: 50px;
+      }
+      
+      .control-btn .icon {
+        font-size: 16px;
+      }
+      
+      .control-btn .label {
+        font-size: 8px;
+      }
+    }
+  </style>
+  
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js').catch(console.error);
+    }
+  </script>
+</head>
+
+<body>
+  <!-- ========== HAUPTCONTAINER ========== -->
+  <div id="map-container">
+    <div id="map"></div>
+  </div>
+  
+  <!-- ========== TITEL ========== -->
+  <div class="map-title">🚒 Hydrantenkarte Feuerwehr Hamberg</div>
+  
+  <!-- ========== OFFLINE INDIKATOR ========== -->
+  <div class="offline-indicator" id="offline-indicator">
+    📡 Offline-Modus
+  </div>
+
+  <!-- ========== KONTROLLEN (RECHTS) ========== -->
+  <div class="controls-sidebar">
+    <button class="control-btn" onclick="toggleFlashlight()" id="flashlight-toggle" title="Taschenlampe">
+      <span class="icon">🔦</span>
+      <span class="label">Licht</span>
+    </button>
+    <button class="control-btn" onclick="findNearestHydrant()" title="Nächster Hydrant">
+      <span class="icon">🔍</span>
+      <span class="label">Nächster</span>
+    </button>
+    <button class="control-btn" onclick="gotoUserLocation()" title="Meine Position">
+      <span class="icon">📍</span>
+      <span class="label">Position</span>
+    </button>
+    <button class="control-btn" onclick="toggleTheme()" title="Karte wechseln">
+      <span class="icon">🗺️</span>
+      <span class="label">Karte</span>
+    </button>
+    <button class="control-btn" onclick="toggleCompass()" id="compass-toggle" title="Kompass">
+      <span class="icon">🧭</span>
+      <span class="label">Kompass</span>
+    </button>
+    <button class="control-btn" onclick="captureScreenshot()" title="Teilen">
+      <span class="icon">📤</span>
+      <span class="label">Teilen</span>
+    </button>
+  </div>
+
+  <!-- ========== LEGENDE (LINKS UNTEN) ========== -->
+  <div class="legend-container" id="legend-container">
+    <div class="legend-header" onclick="toggleLegend()">
+      <span>📋 Legende</span>
+      <span class="toggle-icon" id="legend-toggle-icon">▼</span>
+    </div>
+    <div class="legend-content" id="legend-content">
+      <div class="legend-filters">
+        <label class="filter-checkbox">
+          <input type="checkbox" id="filter-all" checked onchange="toggleAllFilters(this)">
+          <span>Alle anzeigen</span>
+        </label>
+      </div>
+      <div class="legend-items">
+        <div class="legend-item">
+          <img src="icons/red-dot.png" alt="Überflur" class="legend-icon">
+          <label class="filter-checkbox">
+            <input type="checkbox" data-type="überflurhydrant" checked onchange="filterMarkers()">
+            <span>Überflurhydrant</span>
+          </label>
+        </div>
+        <div class="legend-item">
+          <img src="icons/blue-dot.png" alt="Unterflur" class="legend-icon">
+          <label class="filter-checkbox">
+            <input type="checkbox" data-type="unterflurhydrant" checked onchange="filterMarkers()">
+            <span>Unterflurhydrant</span>
+          </label>
+        </div>
+        <div class="legend-item">
+          <img src="icons/green-dot.png" alt="Rettungspunkt" class="legend-icon">
+          <label class="filter-checkbox">
+            <input type="checkbox" data-type="rettungspunkt" checked onchange="filterMarkers()">
+            <span>Rettungspunkt</span>
+          </label>
+        </div>
+        <div class="legend-item">
+          <img src="icons/yellow-dot.png" alt="Wasserbehälter" class="legend-icon">
+          <label class="filter-checkbox">
+            <input type="checkbox" data-type="wasserbehälter" checked onchange="filterMarkers()">
+            <span>Wasserbehälter</span>
+          </label>
+        </div>
+        <div class="legend-item">
+          <img src="icons/purple-dot.png" alt="Sperrpunkt" class="legend-icon">
+          <label class="filter-checkbox">
+            <input type="checkbox" data-type="sperrpunkt" checked onchange="filterMarkers()">
+            <span>Sperrpunkt</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== STATUS (RECHTS UNTEN) ========== -->
+  <div class="status-container">
+    <div class="status-indicator" id="gps-indicator">
+      <span id="gps-icon">🟡</span>
+      <span id="gps-accuracy">GPS: --</span>
+    </div>
+    <div class="status-indicator" id="altitude-indicator">
+      <span>📏</span>
+      <span id="altitude-value">-- m</span>
+    </div>
+    <div class="status-indicator" id="degree-indicator">
+      <span>🧭</span>
+      <span id="degree-value">0°</span>
+    </div>
+  </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+
+// ============================================================================
+// MODUL: KARTEN-INITIALISIERUNG
+// ============================================================================
+var osmStandard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+  attribution: '© OpenStreetMap | 05.08.2025',
+  maxZoom: 19
+});
+
+var osmDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { 
+  attribution: '© CartoDB',
+  maxZoom: 19
+});
+
+var topoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenTopoMap',
+  maxZoom: 17
+});
+
+var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution: '© Esri',
+  maxZoom: 18
+});
+
+// Karte initialisieren
+var map = L.map('map', { 
+  center: [49.10951, 11.68453], 
+  zoom: 15, 
+  layers: [osmStandard],
+  zoomControl: true,
+  attributionControl: true
+});
+
+// ============================================================================
+// MODUL: GLOBALE VARIABLEN
+// ============================================================================
+let userMarker, cone, accuracyCircle, nearestHydrantLine;
+let compassActive = false;
+let flashlightActive = false;
+let flashlightStream = null;
+let currentHeading = 0;
+let currentAltitude = null;
+let currentAccuracy = null;
+let isOffline = !navigator.onLine;
+let watchId = null;
+let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+let hydrantMarkers = [];
+let userPosition = null;
+let currentThemeIndex = 0;
+const themes = [osmStandard, osmDark, topoMap, satellite];
+const themeNames = ['Standard', 'Dunkel', 'Gelände', 'Satellit'];
+
+// ============================================================================
+// MODUL: HYDRANTENMARKER AUS CSV
+// ============================================================================
+
+        var marker = L.marker([49.10951, 11.68453], {
+            icon: L.icon({
+                iconUrl: 'icons/red-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Überflurhydrant</b><br>Überflurhydrant Feuerwehrhaus<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10951,11.68453' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10951,11.68453' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'überflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10895, 11.68544], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Schöndorfer Str. 5<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10895,11.68544' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10895,11.68544' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10803, 11.68614], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Zum Spitzberg 3<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10803,11.68614' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10803,11.68614' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10752, 11.68542], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Kreuzung Zum Spitzberg / Röthenweg<br>Nenndurchmesser DN: 125.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10752,11.68542' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10752,11.68542' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10815, 11.68443], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Röthenweg 13<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10815,11.68443' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10815,11.68443' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10693, 11.68444], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Zum Spitzberg 10<br>Nenndurchmesser DN: 100.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10693,11.68444' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10693,11.68444' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10738, 11.68313], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Sonnenring 14<br>Nenndurchmesser DN: 100.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10738,11.68313' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10738,11.68313' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10664, 11.68528], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Kiefergasse 5<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10664,11.68528' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10664,11.68528' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10597, 11.68546], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Rascher Str. 13<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10597,11.68546' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10597,11.68546' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.1055, 11.68611], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Rascher Str. 9<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.1055,11.68611' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.1055,11.68611' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10605, 11.6862], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Röthenweg 6<br>Nenndurchmesser DN: 100.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10605,11.6862' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10605,11.6862' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10668, 11.68604], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Röthenweg<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10668,11.68604' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10668,11.68604' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10786, 11.68775], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Hauptstraße 17<br>Nenndurchmesser DN: 125.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10786,11.68775' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10786,11.68775' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.1068, 11.68672], {
+            icon: L.icon({
+                iconUrl: 'icons/red-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Überflurhydrant</b><br>Überflurhydrant Hauptstraße 28<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.1068,11.68672' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.1068,11.68672' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'überflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.1063, 11.68724], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Hauptstraße 21b<br>Nenndurchmesser DN: 125.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.1063,11.68724' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.1063,11.68724' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10557, 11.68756], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Hauptstraße 25<br>Nenndurchmesser DN: 125.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10557,11.68756' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10557,11.68756' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10483, 11.68749], {
+            icon: L.icon({
+                iconUrl: 'icons/red-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Überflurhydrant</b><br>Überflurhydrant Hauptstraße 29<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10483,11.68749' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10483,11.68749' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'überflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10502, 11.68894], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Herrnrieder Str. 2<br>Nenndurchmesser DN: 100.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10502,11.68894' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10502,11.68894' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10279, 11.68877], {
+            icon: L.icon({
+                iconUrl: 'icons/red-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Überflurhydrant</b><br>Überflurhydrant Eichlberger Str. 12<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10279,11.68877' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10279,11.68877' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'überflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10373, 11.6877], {
+            icon: L.icon({
+                iconUrl: 'icons/red-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Überflurhydrant</b><br>Überflurhydrant Eichlberger Str. 3<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10373,11.6877' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10373,11.6877' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'überflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.1043, 11.68642], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Hauptstraße 35<br>Nenndurchmesser DN: 100.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.1043,11.68642' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.1043,11.68642' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10412, 11.68603], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Hauptstraße 37<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10412,11.68603' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10412,11.68603' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10355, 11.68542], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Hauptstraße 41<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10355,11.68542' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10355,11.68542' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10372, 11.68505], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Hauptstraße 46<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10372,11.68505' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10372,11.68505' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10288, 11.68749], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Eichlberger Str. 12<br>Nenndurchmesser DN: 125.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10288,11.68749' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10288,11.68749' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10367, 11.68839], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Eichlberger Str. 4<br>Nenndurchmesser DN: 100.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10367,11.68839' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10367,11.68839' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.11046, 11.67008], {
+            icon: L.icon({
+                iconUrl: 'icons/red-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Überflurhydrant</b><br>Überflurhydrant Ödberg 1<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.11046,11.67008' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.11046,11.67008' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'überflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.11063, 11.67348], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Ödberg 3<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.11063,11.67348' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.11063,11.67348' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.1111, 11.67341], {
+            icon: L.icon({
+                iconUrl: 'icons/red-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Überflurhydrant</b><br>Überflurhydrant Ödberg 4<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.1111,11.67341' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.1111,11.67341' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'überflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.11035, 11.6837], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Sportplatz<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.11035,11.6837' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.11035,11.6837' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.11208, 11.68469], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Kreuzung Reitstraße/Spanbergweg<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.11208,11.68469' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.11208,11.68469' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.11304, 11.68592], {
+            icon: L.icon({
+                iconUrl: 'icons/red-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Überflurhydrant</b><br>Überflurhydrant Gabelung Reitstraße/Winner Str.<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.11304,11.68592' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.11304,11.68592' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'überflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.11292, 11.68668], {
+            icon: L.icon({
+                iconUrl: 'icons/red-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Überflurhydrant</b><br>Überflurhydrant Bushäuschen Schnödorf<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.11292,11.68668' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.11292,11.68668' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'überflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.11328, 11.68606], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Winner Str. 1<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.11328,11.68606' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.11328,11.68606' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.11447, 11.6874], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Winner Str. 6<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.11447,11.6874' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.11447,11.6874' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.11339, 11.68766], {
+            icon: L.icon({
+                iconUrl: 'icons/red-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Überflurhydrant</b><br>Überflurhydrant Reitstraße 20<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.11339,11.68766' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.11339,11.68766' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'überflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.11098, 11.68577], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Hohe Trift 5<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.11098,11.68577' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.11098,11.68577' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.11124, 11.68644], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Hohe Trift 2, Einmündung Spanbergweg<br>Nenndurchmesser DN: 150.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.11124,11.68644' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.11124,11.68644' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.11065, 11.68653], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Hauptstraße 1<br>Nenndurchmesser DN: 150.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.11065,11.68653' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.11065,11.68653' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.11, 11.68699], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Hauptstraße 3<br>Nenndurchmesser DN: 100.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.11,11.68699' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.11,11.68699' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.1091, 11.68704], {
+            icon: L.icon({
+                iconUrl: 'icons/red-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Überflurhydrant</b><br>Überflurhydrant Hauptstraße 10<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.1091,11.68704' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.1091,11.68704' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'überflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10941, 11.68767], {
+            icon: L.icon({
+                iconUrl: 'icons/yellow-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Wasserbehälter</b><br>Löschwasserbehälter Talweg, Einmündung Pfarrgasse<br>Nenndurchmesser DN: nan mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10941,11.68767' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10941,11.68767' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'wasserbehälter';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10881, 11.68816], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Pfarrgasse 4<br>Nenndurchmesser DN: 100.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10881,11.68816' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10881,11.68816' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.11375, 11.69697], {
+            icon: L.icon({
+                iconUrl: 'icons/red-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Überflurhydrant</b><br>Überflurhydrant Rofen<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.11375,11.69697' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.11375,11.69697' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'überflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.11399, 11.69562], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Rofen<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.11399,11.69562' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.11399,11.69562' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10078, 11.68323], {
+            icon: L.icon({
+                iconUrl: 'icons/red-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Überflurhydrant</b><br>Überflurhydrant Ziegelhütte 1<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10078,11.68323' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10078,11.68323' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'überflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10849, 11.68725], {
+            icon: L.icon({
+                iconUrl: 'icons/blue-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Unterflurhydrant</b><br>Unterflurhydrant Kirche<br>Nenndurchmesser DN: 80.0 mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10849,11.68725' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10849,11.68725' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'unterflurhydrant';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.092199, 11.70373], {
+            icon: L.icon({
+                iconUrl: 'icons/green-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Rettungspunkt</b><br>Rettungspunkt Schafsee Hamberg/Eichlberg<br>Nenndurchmesser DN: nan mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.092199,11.70373' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.092199,11.70373' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'rettungspunkt';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.086695, 11.66433953], {
+            icon: L.icon({
+                iconUrl: 'icons/green-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Rettungspunkt</b><br>Rettungspunkt NM-2131 Langenthonhausen<br>Nenndurchmesser DN: nan mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.086695,11.66433953' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.086695,11.66433953' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'rettungspunkt';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.10529568, 11.716126], {
+            icon: L.icon({
+                iconUrl: 'icons/green-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Rettungspunkt</b><br>Rettungspunkt Feuerwehrhaus Herrnried<br>Nenndurchmesser DN: nan mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.10529568,11.716126' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.10529568,11.716126' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'rettungspunkt';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.11173709, 11.66721575], {
+            icon: L.icon({
+                iconUrl: 'icons/green-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Rettungspunkt</b><br>Rettungspunkt NM-2171 Ödberg<br>Nenndurchmesser DN: nan mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.11173709,11.66721575' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.11173709,11.66721575' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'rettungspunkt';
+        hydrantMarkers.push(marker);
+        var marker = L.marker([49.12040024, 11.71188973], {
+            icon: L.icon({
+                iconUrl: 'icons/green-dot.png',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32]
+            })
+        }).addTo(map).bindPopup(`<b>Rettungspunkt</b><br>Rettungspunkt NM-2189 B8 Parkplatz<br>Nenndurchmesser DN: nan mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.12040024,11.71188973' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.12040024,11.71188973' target='_blank'>Google Maps</a>`);
+        marker.hydrantType = 'rettungspunkt';
+        hydrantMarkers.push(marker);
+
+// ============================================================================
+// MODUL: LEGENDE UND FILTER
+// ============================================================================
+function toggleLegend() {
+  const content = document.getElementById('legend-content');
+  const icon = document.getElementById('legend-toggle-icon');
+  
+  if (content.classList.contains('collapsed')) {
+    content.classList.remove('collapsed');
+    icon.textContent = '▼';
+  } else {
+    content.classList.add('collapsed');
+    icon.textContent = '▶';
+  }
+}
+
+function toggleAllFilters(checkbox) {
+  const checkboxes = document.querySelectorAll('.legend-items input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    cb.checked = checkbox.checked;
+  });
+  filterMarkers();
+}
+
+function filterMarkers() {
+  const checkboxes = document.querySelectorAll('.legend-items input[type="checkbox"]');
+  const activeTypes = [];
+  
+  checkboxes.forEach(cb => {
+    if (cb.checked) {
+      activeTypes.push(cb.dataset.type);
+    }
+  });
+  
+  hydrantMarkers.forEach(marker => {
+    if (activeTypes.includes(marker.hydrantType)) {
+      marker.addTo(map);
+    } else {
+      marker.remove();
+    }
+  });
+  
+  // "Alle anzeigen" Checkbox aktualisieren
+  const allCheckbox = document.getElementById('filter-all');
+  allCheckbox.checked = activeTypes.length === checkboxes.length;
+}
+
+// ============================================================================
+// MODUL: THEME-WECHSEL
+// ============================================================================
+function toggleTheme() {
+  // Aktuelles Theme entfernen
+  map.removeLayer(themes[currentThemeIndex]);
+  
+  // Nächstes Theme
+  currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+  map.addLayer(themes[currentThemeIndex]);
+  
+  // Optional: Theme-Name anzeigen
+  console.log('Karte gewechselt zu:', themeNames[currentThemeIndex]);
+}
+
+// ============================================================================
+// MODUL: TASCHENLAMPE
+// ============================================================================
+async function toggleFlashlight() {
+  const toggleBtn = document.getElementById('flashlight-toggle');
+  
+  try {
+    if (!flashlightActive) {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+      
+      const track = stream.getVideoTracks()[0];
+      const capabilities = track.getCapabilities();
+      
+      if (capabilities.torch) {
+        await track.applyConstraints({
+          advanced: [{ torch: true }]
+        });
+        
+        flashlightStream = stream;
+        flashlightActive = true;
+        toggleBtn.classList.add('active');
+      } else {
+        throw new Error('Taschenlampe nicht verfügbar');
+      }
+    } else {
+      if (flashlightStream) {
+        const track = flashlightStream.getVideoTracks()[0];
+        await track.applyConstraints({
+          advanced: [{ torch: false }]
+        });
+        
+        flashlightStream.getTracks().forEach(track => track.stop());
+        flashlightStream = null;
+      }
+      
+      flashlightActive = false;
+      toggleBtn.classList.remove('active');
+    }
+  } catch (error) {
+    console.error('Taschenlampe-Fehler:', error);
+    alert('Taschenlampe ist auf diesem Gerät nicht verfügbar');
+  }
+}
+
+// ============================================================================
+// MODUL: GPS UND POSITION
+// ============================================================================
+function gotoUserLocation() {
+  if (userMarker) {
+    map.setView(userMarker.getLatLng(), 17);
+  } else {
+    startLocationTracking();
+  }
+}
+
+function startLocationTracking() {
+  if ("geolocation" in navigator) {
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 30000
+    };
+    
+    watchId = navigator.geolocation.watchPosition(
+      onLocationSuccess,
+      onLocationError,
+      options
+    );
+  } else {
+    alert('GPS wird auf diesem Gerät nicht unterstützt');
+  }
+}
+
+function onLocationSuccess(position) {
+  const lat = position.coords.latitude;
+  const lng = position.coords.longitude;
+  const accuracy = position.coords.accuracy;
+  const altitude = position.coords.altitude;
+  
+  userPosition = { lat, lng };
+  currentAccuracy = Math.round(accuracy);
+  
+  // GPS-Status aktualisieren
+  updateGPSStatus(accuracy);
+  
+  // Höhe aktualisieren
+  if (altitude !== null && altitude !== undefined) {
+    currentAltitude = Math.round(altitude);
+    document.getElementById('altitude-value').textContent = `${currentAltitude} m`;
+  }
+  
+  // Position auf Karte aktualisieren
+  updateUserPositionOnMap(lat, lng, accuracy);
+  
+  // Karte zentrieren beim ersten Mal
+  if (!watchId || map.getZoom() < 15) {
+    map.setView([lat, lng], 17);
+  }
+}
+
+function updateGPSStatus(accuracy) {
+  const gpsIcon = document.getElementById('gps-icon');
+  const gpsAccuracy = document.getElementById('gps-accuracy');
+  
+  if (accuracy < 10) {
+    gpsIcon.textContent = '🟢';
+    gpsAccuracy.textContent = `GPS: ${Math.round(accuracy)}m`;
+  } else if (accuracy < 50) {
+    gpsIcon.textContent = '🟡';
+    gpsAccuracy.textContent = `GPS: ${Math.round(accuracy)}m`;
+  } else {
+    gpsIcon.textContent = '🔴';
+    gpsAccuracy.textContent = `GPS: ${Math.round(accuracy)}m`;
+  }
+}
+
+function updateUserPositionOnMap(lat, lng, accuracy) {
+  // Alte Marker entfernen
+  if (userMarker) map.removeLayer(userMarker);
+  if (cone) map.removeLayer(cone);
+  if (accuracyCircle) map.removeLayer(accuracyCircle);
+  
+  // Genauigkeitskreis
+  accuracyCircle = L.circle([lat, lng], {
+    radius: accuracy,
+    color: '#4285f4',
+    fillColor: '#4285f4',
+    fillOpacity: 0.1,
+    weight: 1
+  }).addTo(map);
+  
+  // Benutzer-Marker
+  userMarker = L.circleMarker([lat, lng], { 
+    radius: 8, 
+    color: '#4285f4', 
+    fillColor: '#4285f4', 
+    fillOpacity: 0.8,
+    weight: 2
+  }).addTo(map).bindPopup(`
+    <b>🚒 Meine Position</b><br>
+    📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}<br>
+    ${currentAltitude ? `📏 Höhe: ${currentAltitude} m<br>` : ''}
+    🎯 Genauigkeit: ${Math.round(accuracy)} m<br>
+    🧭 Richtung: ${Math.round(currentHeading)}°
+  `);
+  
+  // Richtungskegel
+  cone = L.polygon(getConePoints([lat, lng], currentHeading), { 
+    color: '#ff6b35', 
+    fillColor: '#ff6b35', 
+    fillOpacity: 0.3, 
+    weight: 2 
+  }).addTo(map);
+}
+
+function onLocationError(error) {
+  console.error('GPS-Fehler:', error);
+  const gpsIcon = document.getElementById('gps-icon');
+  const gpsAccuracy = document.getElementById('gps-accuracy');
+  gpsIcon.textContent = '❌';
+  gpsAccuracy.textContent = 'GPS: Fehler';
+}
+
+function getConePoints(center, angleDeg, radius = 40, spread = 45) {
+  const [lat, lng] = center;
+  const angleRad = (angleDeg * Math.PI) / 180;
+  const spreadRad = (spread * Math.PI) / 180;
+  const points = [[lat, lng]];
+  
+  for (let a = -spreadRad / 2; a <= spreadRad / 2; a += spreadRad / 15) {
+    const dx = radius * Math.sin(angleRad + a);
+    const dy = radius * Math.cos(angleRad + a);
+    const dLat = dy / 111111;
+    const dLng = dx / (111111 * Math.cos((lat * Math.PI) / 180));
+    points.push([lat + dLat, lng + dLng]);
+  }
+  
+  return points;
+}
+
+// ============================================================================
+// MODUL: KOMPASS
+// ============================================================================
+function toggleCompass() {
+  if (!compassActive) {
+    requestCompassPermission();
+  } else {
+    compassActive = false;
+    document.getElementById('compass-toggle').classList.remove('active');
+  }
+}
+
+function requestCompassPermission() {
+  if (typeof DeviceOrientationEvent !== "undefined" && 
+      typeof DeviceOrientationEvent.requestPermission === "function") {
+    
+    DeviceOrientationEvent.requestPermission()
+      .then(permissionState => {
+        if (permissionState === "granted") {
+          setupOrientationListener();
+          compassActive = true;
+          document.getElementById('compass-toggle').classList.add('active');
+        } else {
+          alert('Kompass-Berechtigung verweigert');
+        }
+      })
+      .catch(console.error);
+  } else {
+    setupOrientationListener();
+    compassActive = true;
+    document.getElementById('compass-toggle').classList.add('active');
+  }
+}
+
+function setupOrientationListener() {
+  function handleOrientation(event) {
+    if (!compassActive) return;
+    
+    let heading = null;
+    
+    if (isIOS && event.webkitCompassHeading !== undefined) {
+      heading = event.webkitCompassHeading;
+    } else if (event.alpha !== null) {
+      heading = 360 - event.alpha;
+      if (heading >= 360) heading -= 360;
+      if (heading < 0) heading += 360;
+    }
+    
+    if (heading !== null) {
+      updateHeading(heading);
+    }
+  }
+  
+  if (window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientation', handleOrientation, true);
+    
+    if ('ondeviceorientationabsolute' in window) {
+      window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+    }
+  }
+}
+
+function updateHeading(heading) {
+  currentHeading = heading;
+  
+  // Grad-Anzeige aktualisieren
+  document.getElementById('degree-value').textContent = `${Math.round(heading)}°`;
+  
+  // Richtungskegel aktualisieren
+  if (cone && userPosition) {
+    cone.setLatLngs(getConePoints([userPosition.lat, userPosition.lng], heading));
+  }
+}
+
+// ============================================================================
+// MODUL: NÄCHSTER HYDRANT
+// ============================================================================
+function findNearestHydrant() {
+  if (!userPosition) {
+    alert('Position noch nicht verfügbar. Bitte warten Sie auf GPS-Signal.');
+    return;
+  }
+  
+  let nearest = null;
+  let minDistance = Infinity;
+  
+  hydrantMarkers.forEach(marker => {
+    // Nur sichtbare Marker berücksichtigen
+    if (map.hasLayer(marker)) {
+      const hydrantPos = marker.getLatLng();
+      const distance = calculateDistance(
+        userPosition.lat, userPosition.lng,
+        hydrantPos.lat, hydrantPos.lng
+      );
+      
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearest = marker;
+      }
+    }
+  });
+  
+  if (nearest) {
+    map.setView(nearest.getLatLng(), 18);
+    nearest.openPopup();
+    
+    // Linie zum nächsten Hydranten
+    if (nearestHydrantLine) {
+      map.removeLayer(nearestHydrantLine);
+    }
+    
+    nearestHydrantLine = L.polyline([
+      [userPosition.lat, userPosition.lng],
+      nearest.getLatLng()
+    ], {
+      color: '#4CAF50',
+      weight: 3,
+      opacity: 0.8,
+      dashArray: '10, 5'
+    }).addTo(map).bindPopup(`Entfernung: ${Math.round(minDistance)} m`);
+  } else {
+    alert('Keine Hydranten in der Nähe gefunden.');
+  }
+}
+
+function calculateDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+// ============================================================================
+// MODUL: SCREENSHOT/TEILEN
+// ============================================================================
+function captureScreenshot() {
+  if (navigator.share) {
+    navigator.share({
+      title: '🚒 Hydrantenkarte Position',
+      text: `Position: ${userPosition ? userPosition.lat.toFixed(6) + ', ' + userPosition.lng.toFixed(6) : 'unbekannt'}\nRichtung: ${Math.round(currentHeading)}°`,
+      url: window.location.href
+    }).catch(console.error);
+  } else {
+    const coords = userPosition ? 
+      `Position: ${userPosition.lat.toFixed(6)}, ${userPosition.lng.toFixed(6)}\nRichtung: ${Math.round(currentHeading)}°` : 
+      'Position unbekannt';
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(coords).then(() => {
+        alert('Position in Zwischenablage kopiert:\n' + coords);
+      });
+    } else {
+      alert(coords);
+    }
+  }
+}
+
+// ============================================================================
+// MODUL: OFFLINE-MANAGEMENT
+// ============================================================================
+window.addEventListener('online', () => {
+  isOffline = false;
+  document.getElementById('offline-indicator').classList.remove('visible');
+});
+
+window.addEventListener('offline', () => {
+  isOffline = true;
+  document.getElementById('offline-indicator').classList.add('visible');
+});
+
+if (!navigator.onLine) {
+  document.getElementById('offline-indicator').classList.add('visible');
+}
+
+// ============================================================================
+// MODUL: EVENT LISTENER & CLEANUP
+// ============================================================================
+window.addEventListener('beforeunload', function() {
+  if (watchId) {
+    navigator.geolocation.clearWatch(watchId);
+  }
+  
+  if (flashlightStream) {
+    flashlightStream.getTracks().forEach(track => track.stop());
+  }
+});
+
+// ============================================================================
+// MODUL: INITIALISIERUNG
+// ============================================================================
+window.addEventListener('load', function() {
+  // GPS automatisch starten
+  startLocationTracking();
+  
+  // Kompass nach kurzer Verzögerung anbieten
+  setTimeout(() => {
+    if (isIOS || confirm('Kompass aktivieren für bessere Navigation?')) {
+      toggleCompass();
+    }
+  }, 1500);
+  
+  // Legende initial einklappen auf Mobile
+  if (window.innerWidth < 768) {
+    setTimeout(() => {
+      toggleLegend();
+    }, 500);
+  }
+});
+
+// ============================================================================
+// MODUL: RESPONSIVE ANPASSUNGEN
+// ============================================================================
+window.addEventListener('resize', () => {
+  if (map) {
+    map.invalidateSize();
+  }
+});
+
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => {
+    if (map) {
+      map.invalidateSize();
+    }
+  }, 500);
+});
+
+</script>
+</body>
+</html>
