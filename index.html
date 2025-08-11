@@ -119,6 +119,17 @@
       color: white; 
     }
     
+    .control-btn.blinking { 
+      background: #ff9800; 
+      color: white;
+      animation: flashlightBlink 1s infinite;
+    }
+    
+    @keyframes flashlightBlink {
+      0%, 50% { background: #ff9800; }
+      51%, 100% { background: rgba(0, 0, 0, 0.8); }
+    }
+    
     /* ========== LEGENDE (LINKS UNTEN) ========== */
     .legend-container {
       position: fixed;
@@ -367,7 +378,7 @@
   <div class="controls-sidebar">
     <button class="control-btn" onclick="toggleFlashlight()" id="flashlight-toggle" title="Taschenlampe">
       <span class="icon">🔦</span>
-      <span class="label">Licht</span>
+      <span class="label" id="flashlight-label">Aus</span>
     </button>
     <button class="control-btn" onclick="findNearestHydrant()" title="Nächster Hydrant">
       <span class="icon">🔍</span>
@@ -385,7 +396,11 @@
       <span class="icon">🧭</span>
       <span class="label">Kompass</span>
     </button>
-    <button class="control-btn" onclick="captureScreenshot()" title="Teilen">
+    <button class="control-btn" onclick="toggleWindArrow()" id="wind-toggle" title="Windpfeil">
+      <span class="icon">💨</span>
+      <span class="label">Wind</span>
+    </button>
+    <button class="control-btn" onclick="captureScreenshot()" title="Standort teilen">
       <span class="icon">📤</span>
       <span class="label">Teilen</span>
     </button>
@@ -458,16 +473,33 @@
       <span>🧭</span>
       <span id="degree-value">0°</span>
     </div>
+    <div class="status-indicator" id="wind-indicator">
+      <span>💨</span>
+      <span id="wind-value">-- km/h</span>
+    </div>
   </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 
 // ============================================================================
-// MODUL: KARTEN-INITIALISIERUNG
+// ERROR HANDLING
+// ============================================================================
+window.addEventListener('error', (e) => {
+  console.error('App-Fehler:', e.error);
+  return true; // App läuft weiter
+});
+
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('Promise-Fehler:', e.reason);
+  e.preventDefault();
+});
+
+// ============================================================================
+// KARTEN-INITIALISIERUNG (SOFORT)
 // ============================================================================
 var osmStandard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-  attribution: '© OpenStreetMap | 05.08.2025',
+  attribution: '© OpenStreetMap | 11.08.2025',
   maxZoom: 19
 });
 
@@ -486,7 +518,7 @@ var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/service
   maxZoom: 18
 });
 
-// Karte initialisieren
+// Karte sofort initialisieren
 var map = L.map('map', { 
   center: [49.10951, 11.68453], 
   zoom: 15, 
@@ -496,12 +528,13 @@ var map = L.map('map', {
 });
 
 // ============================================================================
-// MODUL: GLOBALE VARIABLEN
+// GLOBALE VARIABLEN
 // ============================================================================
 let userMarker, cone, accuracyCircle, nearestHydrantLine;
 let compassActive = false;
-let flashlightActive = false;
+let flashlightMode = 0; // 0=aus, 1=ein, 2=blinkend
 let flashlightStream = null;
+let flashlightBlinkInterval = null;
 let currentHeading = 0;
 let currentAltitude = null;
 let currentAccuracy = null;
@@ -514,8 +547,32 @@ let currentThemeIndex = 0;
 const themes = [osmStandard, osmDark, topoMap, satellite];
 const themeNames = ['Standard', 'Dunkel', 'Gelände', 'Satellit'];
 
+// Windpfeil-Variablen (VERBESSERT)
+let userHasControl = false;
+let hydrantLineTimer = null;
+let orientationHandler = null;
+let windArrowLine = null;
+let windArrowHead = null; // WICHTIG: Separate Variable für Pfeilspitze
+let windArrowActive = true; // Standard: an
+let windData = { speed: null, direction: null, degrees: null, gusts: null };
+let lastWindUpdate = 0;
+
+// Standard-Position für Hamberg/Breitenbrunn
+const DEFAULT_POSITION = { lat: 49.10951, lng: 11.68453 };
+
 // ============================================================================
-// MODUL: HYDRANTENMARKER AUS CSV
+// USER CONTROL TRACKING
+// ============================================================================
+map.on('dragstart', () => { 
+  userHasControl = true;
+});
+
+map.on('zoomstart', () => { 
+  userHasControl = true;
+});
+
+// ============================================================================
+// HYDRANTENMARKER AUS CSV
 // ============================================================================
 
         var marker = L.marker([49.10951, 11.68453], {
@@ -988,7 +1045,7 @@ const themeNames = ['Standard', 'Dunkel', 'Gelände', 'Satellit'];
         hydrantMarkers.push(marker);
 
 // ============================================================================
-// MODUL: LEGENDE UND FILTER
+// LEGENDE UND FILTER
 // ============================================================================
 function toggleLegend() {
   const content = document.getElementById('legend-content');
@@ -1029,76 +1086,122 @@ function filterMarkers() {
     }
   });
   
-  // "Alle anzeigen" Checkbox aktualisieren
   const allCheckbox = document.getElementById('filter-all');
   allCheckbox.checked = activeTypes.length === checkboxes.length;
 }
 
 // ============================================================================
-// MODUL: THEME-WECHSEL
+// THEME-WECHSEL
 // ============================================================================
 function toggleTheme() {
-  // Aktuelles Theme entfernen
   map.removeLayer(themes[currentThemeIndex]);
-  
-  // Nächstes Theme
   currentThemeIndex = (currentThemeIndex + 1) % themes.length;
   map.addLayer(themes[currentThemeIndex]);
-  
-  // Optional: Theme-Name anzeigen
   console.log('Karte gewechselt zu:', themeNames[currentThemeIndex]);
 }
 
 // ============================================================================
-// MODUL: TASCHENLAMPE
+// ERWEITERTE TASCHENLAMPE (3 MODI)
 // ============================================================================
 async function toggleFlashlight() {
   const toggleBtn = document.getElementById('flashlight-toggle');
+  const label = document.getElementById('flashlight-label');
   
   try {
-    if (!flashlightActive) {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
+    // Aktuellen Modus stoppen
+    if (flashlightStream) {
+      const track = flashlightStream.getVideoTracks()[0];
+      await track.applyConstraints({ advanced: [{ torch: false }] });
       
-      const track = stream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities();
-      
-      if (capabilities.torch) {
-        await track.applyConstraints({
-          advanced: [{ torch: true }]
-        });
-        
-        flashlightStream = stream;
-        flashlightActive = true;
-        toggleBtn.classList.add('active');
-      } else {
-        throw new Error('Taschenlampe nicht verfügbar');
-      }
-    } else {
-      if (flashlightStream) {
-        const track = flashlightStream.getVideoTracks()[0];
-        await track.applyConstraints({
-          advanced: [{ torch: false }]
-        });
-        
+      if (flashlightMode === 0) {
         flashlightStream.getTracks().forEach(track => track.stop());
         flashlightStream = null;
       }
-      
-      flashlightActive = false;
-      toggleBtn.classList.remove('active');
     }
+    
+    if (flashlightBlinkInterval) {
+      clearInterval(flashlightBlinkInterval);
+      flashlightBlinkInterval = null;
+    }
+    
+    // Nächsten Modus setzen (0 → 1 → 2 → 0)
+    flashlightMode = (flashlightMode + 1) % 3;
+    
+    switch (flashlightMode) {
+      case 0: // AUS
+        toggleBtn.classList.remove('active', 'blinking');
+        label.textContent = 'Aus';
+        break;
+        
+      case 1: // EIN
+        await startFlashlight();
+        toggleBtn.classList.add('active');
+        toggleBtn.classList.remove('blinking');
+        label.textContent = 'Ein';
+        break;
+        
+      case 2: // BLINKEND
+        await startBlinkingFlashlight();
+        toggleBtn.classList.remove('active');
+        toggleBtn.classList.add('blinking');
+        label.textContent = 'Blink';
+        break;
+    }
+    
   } catch (error) {
     console.error('Taschenlampe-Fehler:', error);
     alert('Taschenlampe ist auf diesem Gerät nicht verfügbar');
+    flashlightMode = 0;
+    toggleBtn.classList.remove('active', 'blinking');
+    label.textContent = 'Aus';
   }
 }
 
+async function startFlashlight() {
+  if (!flashlightStream) {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const track = stream.getVideoTracks()[0];
+    const capabilities = track.getCapabilities();
+    
+    if (!capabilities.torch) {
+      throw new Error('Taschenlampe nicht verfügbar');
+    }
+    
+    flashlightStream = stream;
+  }
+  
+  const track = flashlightStream.getVideoTracks()[0];
+  await track.applyConstraints({ advanced: [{ torch: true }] });
+}
+
+async function startBlinkingFlashlight() {
+  if (!flashlightStream) {
+    await startFlashlight();
+  }
+  
+  const track = flashlightStream.getVideoTracks()[0];
+  
+  flashlightBlinkInterval = setInterval(async () => {
+    try {
+      await track.applyConstraints({ advanced: [{ torch: true }] });
+      setTimeout(async () => {
+        try {
+          await track.applyConstraints({ advanced: [{ torch: false }] });
+        } catch (error) {
+          console.error('Blinklicht aus Fehler:', error);
+        }
+      }, 500);
+    } catch (error) {
+      console.error('Blinklicht an Fehler:', error);
+    }
+  }, 1000);
+}
+
 // ============================================================================
-// MODUL: GPS UND POSITION
+// GPS UND POSITION
 // ============================================================================
 function gotoUserLocation() {
+  userHasControl = false;
   if (userMarker) {
     map.setView(userMarker.getLatLng(), 17);
   } else {
@@ -1110,7 +1213,7 @@ function startLocationTracking() {
   if ("geolocation" in navigator) {
     const options = {
       enableHighAccuracy: true,
-      timeout: 10000,
+      timeout: 30000,
       maximumAge: 30000
     };
     
@@ -1120,7 +1223,9 @@ function startLocationTracking() {
       options
     );
   } else {
-    alert('GPS wird auf diesem Gerät nicht unterstützt');
+    console.warn('GPS nicht unterstützt - verwende Standard-Position');
+    userPosition = DEFAULT_POSITION;
+    updateWindData(true);
   }
 }
 
@@ -1133,22 +1238,20 @@ function onLocationSuccess(position) {
   userPosition = { lat, lng };
   currentAccuracy = Math.round(accuracy);
   
-  // GPS-Status aktualisieren
   updateGPSStatus(accuracy);
   
-  // Höhe aktualisieren
   if (altitude !== null && altitude !== undefined) {
     currentAltitude = Math.round(altitude);
     document.getElementById('altitude-value').textContent = `${currentAltitude} m`;
   }
   
-  // Position auf Karte aktualisieren
   updateUserPositionOnMap(lat, lng, accuracy);
   
-  // Karte zentrieren beim ersten Mal
-  if (!watchId || map.getZoom() < 15) {
+  if (!userHasControl) {
     map.setView([lat, lng], 17);
   }
+  
+  updateWindData(true);
 }
 
 function updateGPSStatus(accuracy) {
@@ -1194,7 +1297,10 @@ function updateUserPositionOnMap(lat, lng, accuracy) {
     📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}<br>
     ${currentAltitude ? `📏 Höhe: ${currentAltitude} m<br>` : ''}
     🎯 Genauigkeit: ${Math.round(accuracy)} m<br>
-    🧭 Richtung: ${Math.round(currentHeading)}°
+    🧭 Richtung: ${Math.round(currentHeading)}° (${degreesToCardinal(currentHeading)})<br>
+    ${windData.speed !== null && windData.degrees !== null
+      ? `💨 Wind: ${windData.speed} km/h aus ${getWindDirection(windData.degrees)} (${windData.degrees}°)<br>`
+      : ''}
   `);
   
   // Richtungskegel
@@ -1204,14 +1310,23 @@ function updateUserPositionOnMap(lat, lng, accuracy) {
     fillOpacity: 0.3, 
     weight: 2 
   }).addTo(map);
+  
+  // Wind-Pfeil aktualisieren
+  updateWindArrow();
 }
 
 function onLocationError(error) {
-  console.error('GPS-Fehler:', error);
+  console.warn('GPS-Fehler:', error.message);
   const gpsIcon = document.getElementById('gps-icon');
   const gpsAccuracy = document.getElementById('gps-accuracy');
-  gpsIcon.textContent = '❌';
-  gpsAccuracy.textContent = 'GPS: Fehler';
+  gpsIcon.textContent = '⚠️';
+  gpsAccuracy.textContent = 'GPS: Fallback';
+  
+  if (!userPosition) {
+    userPosition = DEFAULT_POSITION;
+    console.log('Verwende Standard-Position für Hamberg/Breitenbrunn');
+    updateWindData(true);
+  }
 }
 
 function getConePoints(center, angleDeg, radius = 40, spread = 45) {
@@ -1232,7 +1347,179 @@ function getConePoints(center, angleDeg, radius = 40, spread = 45) {
 }
 
 // ============================================================================
-// MODUL: KOMPASS
+// VERBESSERTE WINDPFEIL-FUNKTIONEN
+// ============================================================================
+function toggleWindArrow() {
+  windArrowActive = !windArrowActive;
+  const toggleBtn = document.getElementById('wind-toggle');
+  
+  if (windArrowActive) {
+    toggleBtn.classList.add('active');
+    updateWindArrow();
+  } else {
+    toggleBtn.classList.remove('active');
+    removeWindArrow(); // Verwende neue Funktion
+  }
+}
+
+// NEUE FUNKTION: Saubere Entfernung des Windpfeils
+function removeWindArrow() {
+  if (windArrowLine) {
+    map.removeLayer(windArrowLine);
+    windArrowLine = null;
+  }
+  if (windArrowHead) {
+    map.removeLayer(windArrowHead);
+    windArrowHead = null;
+  }
+}
+
+// ============================================================================
+// WINDDATEN MIT OPEN-METEO API
+// ============================================================================
+function getWindDirection(degrees) {
+  const dirs = ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW'];
+  return dirs[Math.round(((degrees % 360) / 45)) % 8];
+}
+
+async function fetchWithTimeout(url, options = {}) {
+  const { timeout = 10000 } = options;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout');
+    }
+    throw error;
+  }
+}
+
+async function updateWindData(force = false) {
+  if (!force && Date.now() - lastWindUpdate < 600000) return;
+  
+  const position = userPosition || DEFAULT_POSITION;
+  if (!position) return;
+  
+  try {
+    console.log('🌤️ Lade Wind-Daten für Position:', position);
+    
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${position.lat}&longitude=${position.lng}&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=kmh&timezone=Europe/Berlin`;
+    
+    const response = await fetchWithTimeout(url, { 
+      cache: 'no-store',
+      timeout: 8000 
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Open-Meteo API Fehler: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.current && data.current.wind_speed_10m !== null && data.current.wind_direction_10m !== null) {
+      const speed = Math.round(data.current.wind_speed_10m);
+      const degrees = Math.round(data.current.wind_direction_10m);
+      const gusts = data.current.wind_gusts_10m ? Math.round(data.current.wind_gusts_10m) : null;
+
+      windData = { speed, degrees, gusts, direction: getWindDirection(degrees) };
+      
+      const gustText = gusts && gusts > speed ? ` (Böen: ${gusts} km/h)` : '';
+      document.getElementById('wind-value').textContent = 
+        `${speed} km/h aus ${windData.direction} (${degrees}°)${gustText}`;
+      
+      updateWindArrow();
+      console.log('✅ Wind-Daten aktualisiert:', windData);
+    }
+    
+    lastWindUpdate = Date.now();
+  } catch (error) {
+    console.warn('⚠️ Wind-Daten Fehler:', error.message);
+    document.getElementById('wind-value').textContent = 'Wind: -- km/h';
+    
+    if (force) {
+      setTimeout(() => updateWindData(true), 30000);
+    }
+  }
+}
+
+// NEUE VERBESSERTE WINDPFEIL-FUNKTION
+function updateWindArrow() {
+  // Erst alles entfernen
+  removeWindArrow();
+  
+  if (!windArrowActive || !userPosition || 
+      windData.degrees === null || windData.speed === null) {
+    return;
+  }
+  
+  // Nur anzeigen wenn Wind > 3 km/h
+  if (windData.speed < 3) return;
+  
+  // DEZENTER BLAUER PFEIL - ZEIGT WOHIN DER WIND WEHT
+  const arrowLength = Math.min(80, Math.max(25, windData.speed * 1.5));
+  
+  // Windrichtung um 180° drehen: zeigt wohin der Wind weht (nicht woher er kommt)
+  const windToDirection = (windData.degrees + 180) % 360;
+  const windRad = (windToDirection * Math.PI) / 180;
+  
+  const endLat = userPosition.lat + (arrowLength * Math.cos(windRad)) / 111111;
+  const endLng = userPosition.lng + (arrowLength * Math.sin(windRad)) / (111111 * Math.cos(userPosition.lat * Math.PI / 180));
+  
+  // Dezente blaue Linie (gestrichelt)
+  windArrowLine = L.polyline([
+    [userPosition.lat, userPosition.lng],
+    [endLat, endLng]
+  ], {
+    color: '#2196F3',     // Blau
+    weight: 3,            // Dünner
+    opacity: 0.6,         // Transparent
+    dashArray: '5, 3'     // Gestrichelt
+  }).addTo(map);
+  
+  // Kleine dezente Pfeilspitze (zeigt wohin der Wind weht)
+  windArrowHead = L.polygon(getArrowHeadPoints([endLat, endLng], windToDirection), {
+    color: '#2196F3',
+    fillColor: '#2196F3',
+    fillOpacity: 0.6,
+    weight: 2
+  }).addTo(map);
+  
+  // Tooltip für beide Teile
+  const gustText = windData.gusts && windData.gusts > windData.speed 
+    ? ` / Böen: ${windData.gusts} km/h` : '';
+  const tooltip = `💨 Wind: ${windData.speed} km/h aus ${windData.direction} → weht nach ${getWindDirection(windToDirection)} (${windData.degrees}°)${gustText}`;
+  
+  windArrowLine.bindTooltip(tooltip, { permanent: false, direction: 'top' });
+  windArrowHead.bindTooltip(tooltip, { permanent: false, direction: 'top' });
+}
+
+function getArrowHeadPoints(center, windFromDeg, size = 10) {
+  const [lat, lng] = center;
+  const rad = (windFromDeg * Math.PI) / 180;
+  
+  const tip_lat = lat;
+  const tip_lng = lng;
+  
+  const base1_lat = lat - (size * Math.cos(rad - 0.4)) / 111111;
+  const base1_lng = lng - (size * Math.sin(rad - 0.4)) / (111111 * Math.cos(lat * Math.PI / 180));
+  
+  const base2_lat = lat - (size * Math.cos(rad + 0.4)) / 111111;
+  const base2_lng = lng - (size * Math.sin(rad + 0.4)) / (111111 * Math.cos(lat * Math.PI / 180));
+  
+  return [[tip_lat, tip_lng], [base1_lat, base1_lng], [base2_lat, base2_lng]];
+}
+
+// ============================================================================
+// KOMPASS
 // ============================================================================
 function toggleCompass() {
   if (!compassActive) {
@@ -1240,6 +1527,11 @@ function toggleCompass() {
   } else {
     compassActive = false;
     document.getElementById('compass-toggle').classList.remove('active');
+    if (orientationHandler) {
+      window.removeEventListener('deviceorientation', orientationHandler);
+      window.removeEventListener('deviceorientationabsolute', orientationHandler);
+      orientationHandler = null;
+    }
   }
 }
 
@@ -1266,7 +1558,7 @@ function requestCompassPermission() {
 }
 
 function setupOrientationListener() {
-  function handleOrientation(event) {
+  orientationHandler = function(event) {
     if (!compassActive) return;
     
     let heading = null;
@@ -1282,31 +1574,35 @@ function setupOrientationListener() {
     if (heading !== null) {
       updateHeading(heading);
     }
-  }
+  };
   
   if (window.DeviceOrientationEvent) {
-    window.addEventListener('deviceorientation', handleOrientation, true);
+    window.addEventListener('deviceorientation', orientationHandler, true);
     
     if ('ondeviceorientationabsolute' in window) {
-      window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+      window.addEventListener('deviceorientationabsolute', orientationHandler, true);
     }
   }
 }
 
+function degreesToCardinal(deg) {
+  const dirs = ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW'];
+  return dirs[Math.round(((deg % 360) / 45)) % 8];
+}
+
 function updateHeading(heading) {
-  currentHeading = heading;
+  currentHeading = (heading + 360) % 360;
   
-  // Grad-Anzeige aktualisieren
-  document.getElementById('degree-value').textContent = `${Math.round(heading)}°`;
+  const dir = degreesToCardinal(currentHeading);
+  document.getElementById('degree-value').textContent = `${Math.round(currentHeading)}° (${dir})`;
   
-  // Richtungskegel aktualisieren
   if (cone && userPosition) {
-    cone.setLatLngs(getConePoints([userPosition.lat, userPosition.lng], heading));
+    cone.setLatLngs(getConePoints([userPosition.lat, userPosition.lng], currentHeading));
   }
 }
 
 // ============================================================================
-// MODUL: NÄCHSTER HYDRANT
+// NÄCHSTER HYDRANT
 // ============================================================================
 function findNearestHydrant() {
   if (!userPosition) {
@@ -1314,11 +1610,20 @@ function findNearestHydrant() {
     return;
   }
   
+  if (hydrantLineTimer) {
+    clearTimeout(hydrantLineTimer);
+    hydrantLineTimer = null;
+  }
+  
+  if (nearestHydrantLine) {
+    map.removeLayer(nearestHydrantLine);
+    nearestHydrantLine = null;
+  }
+  
   let nearest = null;
   let minDistance = Infinity;
   
   hydrantMarkers.forEach(marker => {
-    // Nur sichtbare Marker berücksichtigen
     if (map.hasLayer(marker)) {
       const hydrantPos = marker.getLatLng();
       const distance = calculateDistance(
@@ -1337,11 +1642,6 @@ function findNearestHydrant() {
     map.setView(nearest.getLatLng(), 18);
     nearest.openPopup();
     
-    // Linie zum nächsten Hydranten
-    if (nearestHydrantLine) {
-      map.removeLayer(nearestHydrantLine);
-    }
-    
     nearestHydrantLine = L.polyline([
       [userPosition.lat, userPosition.lng],
       nearest.getLatLng()
@@ -1350,7 +1650,15 @@ function findNearestHydrant() {
       weight: 3,
       opacity: 0.8,
       dashArray: '10, 5'
-    }).addTo(map).bindPopup(`Entfernung: ${Math.round(minDistance)} m`);
+    }).addTo(map).bindPopup(`→ Entfernung: ${Math.round(minDistance)} m`);
+    
+    hydrantLineTimer = setTimeout(() => {
+      if (nearestHydrantLine) {
+        map.removeLayer(nearestHydrantLine);
+        nearestHydrantLine = null;
+      }
+      hydrantLineTimer = null;
+    }, 15000);
   } else {
     alert('Keine Hydranten in der Nähe gefunden.');
   }
@@ -1368,32 +1676,50 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
 }
 
 // ============================================================================
-// MODUL: SCREENSHOT/TEILEN
+// VERBESSERTE TEILEN-FUNKTION (MIT LINK ZUR INDEX.HTML)
 // ============================================================================
 function captureScreenshot() {
+  const position = userPosition || DEFAULT_POSITION;
+  const lat = position.lat.toFixed(6);
+  const lng = position.lng.toFixed(6);
+  
+  // Link zur eigenen Hydrantenkarte mit Koordinaten
+  const baseUrl = window.location.href.split('?')[0]; // Ohne vorhandene Parameter
+  const hydrantenkarteUrl = `${baseUrl}?lat=${lat}&lng=${lng}&zoom=17`;
+  
+  // Zusätzlich direkte Karten-Links
+  const googleMapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
+  const appleMapsUrl = `https://maps.apple.com/?q=${lat},${lng}`;
+  
+  const shareData = {
+    title: '🚒 Feuerwehr Hamberg - Einsatzort',
+    text: `🚨 Einsatzort: ${lat}, ${lng}\nRichtung: ${Math.round(currentHeading)}° (${degreesToCardinal(currentHeading)})${windData.speed ? '\nWind: ' + windData.speed + ' km/h → weht nach ' + getWindDirection((windData.degrees + 180) % 360) + ' (' + windData.degrees + '°)' : ''}\n\n🚒 Hydrantenkarte: ${hydrantenkarteUrl}`,
+    url: hydrantenkarteUrl
+  };
+  
   if (navigator.share) {
-    navigator.share({
-      title: '🚒 Hydrantenkarte Position',
-      text: `Position: ${userPosition ? userPosition.lat.toFixed(6) + ', ' + userPosition.lng.toFixed(6) : 'unbekannt'}\nRichtung: ${Math.round(currentHeading)}°`,
-      url: window.location.href
-    }).catch(console.error);
+    navigator.share(shareData).catch(console.error);
   } else {
-    const coords = userPosition ? 
-      `Position: ${userPosition.lat.toFixed(6)}, ${userPosition.lng.toFixed(6)}\nRichtung: ${Math.round(currentHeading)}°` : 
-      'Position unbekannt';
+    const shareText = `🚒 Feuerwehr Hamberg - Einsatzort\n\n📍 Koordinaten: ${lat}, ${lng}\n🧭 Richtung: ${Math.round(currentHeading)}° (${degreesToCardinal(currentHeading)})${windData.speed ? '\n💨 Wind: ' + windData.speed + ' km/h → weht nach ' + getWindDirection((windData.degrees + 180) % 360) + ' (' + windData.degrees + '°)' : ''}\n\n🚒 Hydrantenkarte:\n${hydrantenkarteUrl}\n\n📱 Google Maps:\n${googleMapsUrl}\n\n🍎 Apple Maps:\n${appleMapsUrl}`;
     
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(coords).then(() => {
-        alert('Position in Zwischenablage kopiert:\n' + coords);
+      navigator.clipboard.writeText(shareText).then(() => {
+        alert('🚒 Einsatzort-Information kopiert!\n\nInklusive Link zur Hydrantenkarte und Karten-Apps.');
       });
     } else {
-      alert(coords);
+      const textarea = document.createElement('textarea');
+      textarea.value = shareText;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      alert('🚒 Einsatzort-Information kopiert!');
     }
   }
 }
 
 // ============================================================================
-// MODUL: OFFLINE-MANAGEMENT
+// OFFLINE-MANAGEMENT
 // ============================================================================
 window.addEventListener('online', () => {
   isOffline = false;
@@ -1410,7 +1736,19 @@ if (!navigator.onLine) {
 }
 
 // ============================================================================
-// MODUL: EVENT LISTENER & CLEANUP
+// PAGE VISIBILITY
+// ============================================================================
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && watchId) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+  } else if (!document.hidden && !watchId) {
+    startLocationTracking();
+  }
+});
+
+// ============================================================================
+// EVENT LISTENER & CLEANUP
 // ============================================================================
 window.addEventListener('beforeunload', function() {
   if (watchId) {
@@ -1420,32 +1758,85 @@ window.addEventListener('beforeunload', function() {
   if (flashlightStream) {
     flashlightStream.getTracks().forEach(track => track.stop());
   }
+  
+  if (flashlightBlinkInterval) {
+    clearInterval(flashlightBlinkInterval);
+  }
+  
+  if (orientationHandler) {
+    window.removeEventListener('deviceorientation', orientationHandler);
+    window.removeEventListener('deviceorientationabsolute', orientationHandler);
+  }
 });
 
 // ============================================================================
-// MODUL: INITIALISIERUNG
+// INITIALISIERUNG (MIT URL-PARAMETER SUPPORT)
 // ============================================================================
 window.addEventListener('load', function() {
-  // GPS automatisch starten
-  startLocationTracking();
+  console.log('🚒 Hydrantenkarte Hamberg wird initialisiert...');
   
-  // Kompass nach kurzer Verzögerung anbieten
+  // URL-Parameter auslesen für geteilte Positionen
+  const urlParams = new URLSearchParams(window.location.search);
+  const sharedLat = urlParams.get('lat');
+  const sharedLng = urlParams.get('lng');
+  const sharedZoom = urlParams.get('zoom');
+  
+  if (sharedLat && sharedLng) {
+    // Geteilte Position verwenden
+    const lat = parseFloat(sharedLat);
+    const lng = parseFloat(sharedLng);
+    const zoom = sharedZoom ? parseInt(sharedZoom) : 17;
+    
+    console.log('📍 Geteilte Position erkannt:', lat, lng);
+    map.setView([lat, lng], zoom);
+    
+    // Marker für geteilte Position setzen
+    L.marker([lat, lng], {
+      icon: L.icon({
+        iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+            <circle cx="16" cy="16" r="12" fill="#ff4444" stroke="#fff" stroke-width="2"/>
+            <text x="16" y="21" text-anchor="middle" fill="white" font-size="16">🚒</text>
+          </svg>
+        `),
+        iconSize: [32, 32],
+        iconAnchor: [16, 32]
+      })
+    }).addTo(map).bindPopup(`
+      <b>🚨 Geteilter Einsatzort</b><br>
+      📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}<br>
+      <small>Von einem anderen Feuerwehr-Gerät geteilt</small>
+    `).openPopup();
+  }
+  
+  // Windpfeil standardmäßig aktivieren
+  document.getElementById('wind-toggle').classList.add('active');
+  
+  startLocationTracking();
+
+  setTimeout(() => {
+    updateWindData(true);
+  }, 2000);
+
+  setInterval(() => updateWindData(false), 600000);
+  
   setTimeout(() => {
     if (isIOS || confirm('Kompass aktivieren für bessere Navigation?')) {
       toggleCompass();
     }
-  }, 1500);
+  }, 3000);
   
-  // Legende initial einklappen auf Mobile
   if (window.innerWidth < 768) {
     setTimeout(() => {
       toggleLegend();
     }, 500);
   }
+  
+  console.log('✅ Hydrantenkarte vollständig geladen');
 });
 
 // ============================================================================
-// MODUL: RESPONSIVE ANPASSUNGEN
+// RESPONSIVE ANPASSUNGEN
 // ============================================================================
 window.addEventListener('resize', () => {
   if (map) {

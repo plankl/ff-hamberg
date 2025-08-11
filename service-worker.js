@@ -1,8 +1,9 @@
 
-const CACHE_NAME = 'hydrantenkarte-v6.0';
+const CACHE_NAME = 'hydrantenkarte-v7.4';
 const urlsToCache = [
   'index.html',
   'manifest.json',
+  'service-worker.js',
   'icon.png',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
