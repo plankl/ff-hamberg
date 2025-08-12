@@ -1,7 +1,7 @@
 {
-  "name": "Feuerwehr Hydrantenkarte Hamberg",
-  "short_name": "Hydrantenkarte",
-  "start_url": "index.html",
+  "name": "Feuerwehr Hydrantenkarte Hamberg - AR Hybrid",
+  "short_name": "Hydrantenkarte AR",
+  "start_url": "index_hybrid.html",
   "display": "standalone",
   "background_color": "#1a1a1a",
   "theme_color": "#d40000",
