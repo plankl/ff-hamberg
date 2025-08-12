@@ -1,14 +1,12 @@
 
-const CACHE_NAME = 'hydrantenkarte-ar-v8.0';
+const CACHE_NAME = 'hydrantenkarte-v7.4';
 const urlsToCache = [
-  'index_hybrid.html',
+  'index.html',
   'manifest.json',
   'service-worker.js',
   'icon.png',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-  'https://cdn.jsdelivr.net/gh/aframevr/aframe@1c2407b26c61958baa93967b5412487cd94b290b/dist/aframe-master.min.js',
-  'https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js'
+  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
 ];
 
 self.addEventListener('install', event => {
@@ -36,7 +34,7 @@ self.addEventListener('fetch', event => {
       .catch(error => {
         console.error('Fetch-Fehler:', error);
         if (event.request.destination === 'document') {
-          return caches.match('index_hybrid.html');
+          return caches.match('index.html');
         }
       })
   );

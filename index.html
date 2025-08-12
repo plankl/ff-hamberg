@@ -2,20 +2,14 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>🚒 Hydrantenkarte Feuerwehr Hamberg - AR Hybrid</title>
+  <title>🚒 Feuerwehr Hydrantenkarte Hamberg</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#d40000">
   <link rel="icon" href="icon.png" type="image/png">
-  
-  <!-- 2D Map Libraries -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  
-  <!-- AR Libraries -->
-  <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@1c2407b26c61958baa93967b5412487cd94b290b/dist/aframe-master.min.js"></script>
-  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
   
   
   <style>
@@ -36,33 +30,15 @@
       color: #ffffff;
     }
     
-    /* ========== MODE CONTAINERS ========== */
-    .mode-container {
+    /* ========== KARTEN-CONTAINER ========== */
+    #map-container { 
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
       overflow: hidden;
-      transition: opacity 0.5s ease;
       z-index: 1;
-    }
-    
-    .mode-container:not(.active) {
-      opacity: 0;
-      pointer-events: none;
-      z-index: 0;
-    }
-    
-    .mode-container.active {
-      opacity: 1;
-      pointer-events: all;
-      z-index: 1;
-    }
-    
-    /* ========== 2D MAP CONTAINER ========== */
-    #map-container {
-      background: #1a1a1a;
     }
     
     #map { 
@@ -70,12 +46,7 @@
       height: 100%;
     }
     
-    /* ========== AR CONTAINER ========== */
-    #ar-container {
-      background: #000;
-    }
-    
-    /* ========== TITEL MIT MODE SWITCHER ========== */
+    /* ========== TITEL ========== */
     .map-title { 
       position: fixed; 
       top: 10px; 
@@ -87,43 +58,9 @@
       padding: 8px 16px; 
       font-size: 16px; 
       font-weight: 600; 
-      border-radius: 12px; 
+      border-radius: 8px; 
       z-index: 1001;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-direction: column;
-    }
-    
-    .mode-switcher {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-    
-    .mode-btn {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      padding: 6px 12px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      min-width: 60px;
-    }
-    
-    .mode-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: scale(1.05);
-    }
-    
-    .mode-btn.active {
-      background: linear-gradient(135deg, #00ff88 0%, #00aaff 100%);
-      color: #000;
-      border-color: #00ff88;
     }
     
     /* ========== KONTROLLEN SIDEBAR (RECHTS) ========== */
@@ -313,7 +250,7 @@
     /* ========== OFFLINE INDIKATOR ========== */
     .offline-indicator {
       position: fixed;
-      top: 80px;
+      top: 50px;
       left: 50%;
       transform: translateX(-50%);
       background: #ff9800;
@@ -334,75 +271,6 @@
     @keyframes pulse {
       0%, 100% { transform: translateX(-50%) scale(1); }
       50% { transform: translateX(-50%) scale(1.05); }
-    }
-    
-    /* ========== AR LOADING & PERMISSION SCREENS ========== */
-    .ar-loading, .camera-permission {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.9);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      z-index: 2000;
-      text-align: center;
-      padding: 20px;
-    }
-    
-    .loading-spinner {
-      border: 4px solid rgba(255, 255, 255, 0.1);
-      border-left: 4px solid #00ff88;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      animation: spin 1s linear infinite;
-      margin-bottom: 30px;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    .loading-text {
-      font-size: 20px;
-      font-weight: 600;
-      margin-bottom: 15px;
-    }
-    
-    .loading-steps {
-      font-size: 14px;
-      opacity: 0.8;
-      max-width: 300px;
-      line-height: 1.6;
-    }
-    
-    .permission-icon {
-      font-size: 80px;
-      margin-bottom: 20px;
-    }
-    
-    .permission-btn {
-      background: linear-gradient(135deg, #00ff88 0%, #00aaff 100%);
-      color: #000;
-      border: none;
-      padding: 15px 30px;
-      border-radius: 50px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 20px;
-      transition: all 0.3s ease;
-    }
-    
-    .permission-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 6px 25px rgba(0, 255, 136, 0.5);
     }
     
     /* ========== POPUPS ========== */
@@ -428,19 +296,6 @@
       .map-title { 
         font-size: 14px; 
         padding: 6px 12px;
-        flex-direction: column;
-        gap: 8px;
-      }
-      
-      .mode-switcher {
-        gap: 6px;
-        margin-top: 6px;
-      }
-      
-      .mode-btn {
-        padding: 4px 10px;
-        font-size: 11px;
-        min-width: 50px;
       }
       
       .controls-sidebar { 
@@ -506,69 +361,13 @@
 </head>
 
 <body>
-  <!-- ========== 2D MAP CONTAINER ========== -->
-  <div id="map-container" class="mode-container active">
+  <!-- ========== HAUPTCONTAINER ========== -->
+  <div id="map-container">
     <div id="map"></div>
   </div>
   
-  <!-- ========== AR CONTAINER ========== -->
-  <div id="ar-container" class="mode-container">
-    <!-- AR Scene -->
-    <a-scene
-      id="ar-scene"
-      embedded
-      arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
-      vr-mode-ui="enabled: false"
-      gesture-detector
-      loading-screen="enabled: false"
-      style="width: 100%; height: 100%;">
-
-      <!-- Camera -->
-      <a-camera
-        id="ar-camera"
-        gps-camera="gpsMinDistance: 5; gpsTimeInterval: 1000"
-        rotation-reader
-        look-controls-enabled="false"
-        arjs-look-controls="smoothingFactor: 0.1">
-      </a-camera>
-
-      <!-- Hydranten Container -->
-      <a-entity id="hydrants-ar-container"></a-entity>
-
-      <!-- Wind Arrow -->
-      <a-entity id="wind-ar-arrow" visible="false">
-        <a-cone 
-          position="0 0 -2"
-          radius-bottom="0.1" 
-          radius-top="0" 
-          height="0.5" 
-          color="#00aaff"
-          material="emissive: #004488; emissiveIntensity: 0.5"
-          animation="property: position; to: 0 0.1 -2; direction: alternate; loop: true; dur: 1000">
-        </a-cone>
-        <a-text
-          value="💨 WIND"
-          position="0 0.3 -2"
-          align="center"
-          color="#ffffff"
-          scale="0.5 0.5 0.5">
-        </a-text>
-      </a-entity>
-    </a-scene>
-  </div>
-  
-  <!-- ========== TITEL MIT MODE SWITCHER ========== -->
-  <div class="map-title">
-    <span>🚒 Hydrantenkarte Feuerwehr Hamberg</span>
-    <div class="mode-switcher">
-      <button class="mode-btn active" onclick="switchTo2D()" id="mode-2d-btn">
-        🗺️ 2D
-      </button>
-      <button class="mode-btn" onclick="switchToAR()" id="mode-ar-btn">
-        📱 AR
-      </button>
-    </div>
-  </div>
+  <!-- ========== TITEL ========== -->
+  <div class="map-title">🚒 Hydrantenkarte Feuerwehr Hamberg</div>
   
   <!-- ========== OFFLINE INDIKATOR ========== -->
   <div class="offline-indicator" id="offline-indicator">
@@ -577,7 +376,6 @@
 
   <!-- ========== KONTROLLEN (RECHTS) ========== -->
   <div class="controls-sidebar">
-    <!-- Standard Controls -->
     <button class="control-btn" onclick="toggleFlashlight()" id="flashlight-toggle" title="Taschenlampe">
       <span class="icon">🔦</span>
       <span class="label" id="flashlight-label">Aus</span>
@@ -590,14 +388,10 @@
       <span class="icon">📍</span>
       <span class="label">Position</span>
     </button>
-    
-    <!-- 2D Only Controls -->
-    <button class="control-btn map-only" onclick="toggleTheme()" title="Karte wechseln">
+    <button class="control-btn" onclick="toggleTheme()" title="Karte wechseln">
       <span class="icon">🗺️</span>
       <span class="label">Karte</span>
     </button>
-    
-    <!-- Common Controls -->
     <button class="control-btn" onclick="toggleCompass()" id="compass-toggle" title="Kompass">
       <span class="icon">🧭</span>
       <span class="label">Kompass</span>
@@ -606,13 +400,6 @@
       <span class="icon">💨</span>
       <span class="label">Wind</span>
     </button>
-    
-    <!-- AR Only Controls -->
-    <button class="control-btn ar-only" onclick="recalibrateAR()" id="recalibrate-btn" title="AR Neu kalibrieren" style="display: none;">
-      <span class="icon">🎯</span>
-      <span class="label">Kalibrieren</span>
-    </button>
-    
     <button class="control-btn" onclick="captureScreenshot()" title="Standort teilen">
       <span class="icon">📤</span>
       <span class="label">Teilen</span>
@@ -690,496 +477,17 @@
       <span>💨</span>
       <span id="wind-value">-- km/h</span>
     </div>
-    <div class="status-indicator" id="mode-indicator">
-      <span>📱</span>
-      <span id="mode-value">2D-Modus</span>
-    </div>
   </div>
 
-  <!-- ========== AR LOADING/ERROR OVERLAYS ========== -->
-  <div class="ar-loading" id="ar-loading" style="display: none;">
-    <div class="loading-spinner"></div>
-    <div class="loading-text">🚒 Starte AR-Modus...</div>
-    <div class="loading-steps">
-      <div id="ar-loading-step">Aktiviere Kamera...</div>
-    </div>
-  </div>
-
-  <div class="camera-permission" id="camera-permission" style="display: none;">
-    <div class="permission-icon">📹</div>
-    <h2>Kamera-Zugriff erforderlich</h2>
-    <p>Für AR-Funktionen benötigt die App Zugriff auf deine Kamera.<br>
-    Dadurch können Hydranten und Windrichtung in der realen Welt angezeigt werden.</p>
-    <button class="permission-btn" onclick="requestCameraPermission()">
-      📸 Kamera aktivieren
-    </button>
-  </div>
-
-<!-- Load 2D Map Library -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
-
-// ============================================================================
-// GLOBAL VARIABLES
-// ============================================================================
-let currentMode = '2d'; // '2d' or 'ar'
-let userPosition = { lat: 49.10951, lng: 11.68453 }; // Hamberg/Breitenbrunn
-let currentHeading = 0;
-let windData = { speed: null, direction: null, degrees: null, gusts: null };
-let hydrantsData = [
-  {
-    "lat": 49.10951,
-    "lng": 11.68453,
-    "type": "\u00fcberflurhydrant",
-    "description": "\u00dcberflurhydrant Feuerwehrhaus",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10895,
-    "lng": 11.68544,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Sch\u00f6ndorfer Str. 5",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10803,
-    "lng": 11.68614,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Zum Spitzberg 3",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10752,
-    "lng": 11.68542,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Kreuzung Zum Spitzberg / R\u00f6thenweg",
-    "size": "125.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10815,
-    "lng": 11.68443,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant R\u00f6thenweg 13",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10693,
-    "lng": 11.68444,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Zum Spitzberg 10",
-    "size": "100.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10738,
-    "lng": 11.68313,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Sonnenring 14",
-    "size": "100.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10664,
-    "lng": 11.68528,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Kiefergasse 5",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10597,
-    "lng": 11.68546,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Rascher Str. 13",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.1055,
-    "lng": 11.68611,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Rascher Str. 9",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10605,
-    "lng": 11.6862,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant R\u00f6thenweg 6",
-    "size": "100.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10668,
-    "lng": 11.68604,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant R\u00f6thenweg",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10786,
-    "lng": 11.68775,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Hauptstra\u00dfe 17",
-    "size": "125.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.1068,
-    "lng": 11.68672,
-    "type": "\u00fcberflurhydrant",
-    "description": "\u00dcberflurhydrant Hauptstra\u00dfe 28",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.1063,
-    "lng": 11.68724,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Hauptstra\u00dfe 21b",
-    "size": "125.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10557,
-    "lng": 11.68756,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Hauptstra\u00dfe 25",
-    "size": "125.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10483,
-    "lng": 11.68749,
-    "type": "\u00fcberflurhydrant",
-    "description": "\u00dcberflurhydrant Hauptstra\u00dfe 29",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10502,
-    "lng": 11.68894,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Herrnrieder Str. 2",
-    "size": "100.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10279,
-    "lng": 11.68877,
-    "type": "\u00fcberflurhydrant",
-    "description": "\u00dcberflurhydrant Eichlberger Str. 12",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10373,
-    "lng": 11.6877,
-    "type": "\u00fcberflurhydrant",
-    "description": "\u00dcberflurhydrant Eichlberger Str. 3",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.1043,
-    "lng": 11.68642,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Hauptstra\u00dfe 35",
-    "size": "100.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10412,
-    "lng": 11.68603,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Hauptstra\u00dfe 37",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10355,
-    "lng": 11.68542,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Hauptstra\u00dfe 41",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10372,
-    "lng": 11.68505,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Hauptstra\u00dfe 46",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10288,
-    "lng": 11.68749,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Eichlberger Str. 12",
-    "size": "125.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10367,
-    "lng": 11.68839,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Eichlberger Str. 4",
-    "size": "100.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.11046,
-    "lng": 11.67008,
-    "type": "\u00fcberflurhydrant",
-    "description": "\u00dcberflurhydrant \u00d6dberg 1",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.11063,
-    "lng": 11.67348,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant \u00d6dberg 3",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.1111,
-    "lng": 11.67341,
-    "type": "\u00fcberflurhydrant",
-    "description": "\u00dcberflurhydrant \u00d6dberg 4",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.11035,
-    "lng": 11.6837,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Sportplatz",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.11208,
-    "lng": 11.68469,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Kreuzung Reitstra\u00dfe/Spanbergweg",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.11304,
-    "lng": 11.68592,
-    "type": "\u00fcberflurhydrant",
-    "description": "\u00dcberflurhydrant Gabelung Reitstra\u00dfe/Winner Str.",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.11292,
-    "lng": 11.68668,
-    "type": "\u00fcberflurhydrant",
-    "description": "\u00dcberflurhydrant Bush\u00e4uschen Schn\u00f6dorf",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.11328,
-    "lng": 11.68606,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Winner Str. 1",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.11447,
-    "lng": 11.6874,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Winner Str. 6",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.11339,
-    "lng": 11.68766,
-    "type": "\u00fcberflurhydrant",
-    "description": "\u00dcberflurhydrant Reitstra\u00dfe 20",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.11098,
-    "lng": 11.68577,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Hohe Trift 5",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.11124,
-    "lng": 11.68644,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Hohe Trift 2, Einm\u00fcndung Spanbergweg",
-    "size": "150.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.11065,
-    "lng": 11.68653,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Hauptstra\u00dfe 1",
-    "size": "150.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.11,
-    "lng": 11.68699,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Hauptstra\u00dfe 3",
-    "size": "100.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.1091,
-    "lng": 11.68704,
-    "type": "\u00fcberflurhydrant",
-    "description": "\u00dcberflurhydrant Hauptstra\u00dfe 10",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10941,
-    "lng": 11.68767,
-    "type": "wasserbeh\u00e4lter",
-    "description": "L\u00f6schwasserbeh\u00e4lter Talweg, Einm\u00fcndung Pfarrgasse",
-    "size": "nan",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10881,
-    "lng": 11.68816,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Pfarrgasse 4",
-    "size": "100.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.11375,
-    "lng": 11.69697,
-    "type": "\u00fcberflurhydrant",
-    "description": "\u00dcberflurhydrant Rofen",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.11399,
-    "lng": 11.69562,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Rofen",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10078,
-    "lng": 11.68323,
-    "type": "\u00fcberflurhydrant",
-    "description": "\u00dcberflurhydrant Ziegelh\u00fctte 1",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10849,
-    "lng": 11.68725,
-    "type": "unterflurhydrant",
-    "description": "Unterflurhydrant Kirche",
-    "size": "80.0",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.092199,
-    "lng": 11.70373,
-    "type": "rettungspunkt",
-    "description": "Rettungspunkt Schafsee Hamberg/Eichlberg",
-    "size": "nan",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.086695,
-    "lng": 11.66433953,
-    "type": "rettungspunkt",
-    "description": "Rettungspunkt NM-2131 Langenthonhausen",
-    "size": "nan",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.10529568,
-    "lng": 11.716126,
-    "type": "rettungspunkt",
-    "description": "Rettungspunkt Feuerwehrhaus Herrnried",
-    "size": "nan",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.11173709,
-    "lng": 11.66721575,
-    "type": "rettungspunkt",
-    "description": "Rettungspunkt NM-2171 \u00d6dberg",
-    "size": "nan",
-    "department": "FF Hamberg"
-  },
-  {
-    "lat": 49.12040024,
-    "lng": 11.71188973,
-    "type": "rettungspunkt",
-    "description": "Rettungspunkt NM-2189 B8 Parkplatz",
-    "size": "nan",
-    "department": "FF Hamberg"
-  }
-];
-
-// 2D Map Variables
-let map, userMarker, cone, accuracyCircle, nearestHydrantLine;
-let hydrantMarkers = [];
-let windArrowLine = null;
-let windArrowHead = null;
-let currentThemeIndex = 0;
-
-// AR Variables
-let arScene, arCamera;
-let arInitialized = false;
-
-// Common Variables
-let compassActive = false;
-let flashlightMode = 0;
-let flashlightStream = null;
-let flashlightBlinkInterval = null;
-let currentAltitude = null;
-let currentAccuracy = null;
-let isOffline = !navigator.onLine;
-let watchId = null;
-let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-let userHasControl = false;
-let windArrowActive = true;
-let lastWindUpdate = 0;
-
-// Standard-Position für Hamberg/Breitenbrunn
-const DEFAULT_POSITION = { lat: 49.10951, lng: 11.68453 };
 
 // ============================================================================
 // ERROR HANDLING
 // ============================================================================
 window.addEventListener('error', (e) => {
   console.error('App-Fehler:', e.error);
-  return true;
+  return true; // App läuft weiter
 });
 
 window.addEventListener('unhandledrejection', (e) => {
@@ -1188,59 +496,85 @@ window.addEventListener('unhandledrejection', (e) => {
 });
 
 // ============================================================================
-// 2D MAP INITIALIZATION
+// KARTEN-INITIALISIERUNG (SOFORT)
 // ============================================================================
-function initialize2DMap() {
-  console.log('🗺️ Initialisiere 2D-Karte...');
-  
-  // Tile Layers
-  const osmStandard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-    attribution: '© OpenStreetMap | 12.08.2025',
-    maxZoom: 19
-  });
+var osmStandard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+  attribution: '© OpenStreetMap | 12.08.2025',
+  maxZoom: 19
+});
 
-  const osmDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { 
-    attribution: '© CartoDB',
-    maxZoom: 19
-  });
+var osmDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { 
+  attribution: '© CartoDB',
+  maxZoom: 19
+});
 
-  const topoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenTopoMap',
-    maxZoom: 17
-  });
+var topoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenTopoMap',
+  maxZoom: 17
+});
 
-  const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: '© Esri',
-    maxZoom: 18
-  });
+var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution: '© Esri',
+  maxZoom: 18
+});
 
-  // Initialize map
-  map = L.map('map', { 
-    center: [49.10951, 11.68453], 
-    zoom: 15, 
-    layers: [osmStandard],
-    zoomControl: true,
-    attributionControl: true
-  });
-  
-  // Store themes for switching
-  window.themes = [osmStandard, osmDark, topoMap, satellite];
-  window.themeNames = ['Standard', 'Dunkel', 'Gelände', 'Satellit'];
-  
-  // Add hydrant markers
-  create2DHydrants();
-  
-  // Map event listeners
-  map.on('dragstart', () => { userHasControl = true; });
-  map.on('zoomstart', () => { userHasControl = true; });
-  
-  console.log('✅ 2D-Karte initialisiert');
-}
+// Karte sofort initialisieren
+var map = L.map('map', { 
+  center: [49.10951, 11.68453], 
+  zoom: 15, 
+  layers: [osmStandard],
+  zoomControl: true,
+  attributionControl: true
+});
 
-function create2DHydrants() {
-  console.log('🚰 Erstelle 2D-Hydranten...');
-  
-  
+// ============================================================================
+// GLOBALE VARIABLEN
+// ============================================================================
+let userMarker, cone, accuracyCircle, nearestHydrantLine;
+let compassActive = false;
+let flashlightMode = 0; // 0=aus, 1=ein, 2=blinkend
+let flashlightStream = null;
+let flashlightBlinkInterval = null;
+let currentHeading = 0;
+let currentAltitude = null;
+let currentAccuracy = null;
+let isOffline = !navigator.onLine;
+let watchId = null;
+let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+let hydrantMarkers = [];
+let userPosition = null;
+let currentThemeIndex = 0;
+const themes = [osmStandard, osmDark, topoMap, satellite];
+const themeNames = ['Standard', 'Dunkel', 'Gelände', 'Satellit'];
+
+// Windpfeil-Variablen (VERBESSERT)
+let userHasControl = false;
+let hydrantLineTimer = null;
+let orientationHandler = null;
+let windArrowLine = null;
+let windArrowHead = null; // WICHTIG: Separate Variable für Pfeilspitze
+let windArrowActive = true; // Standard: an
+let windData = { speed: null, direction: null, degrees: null, gusts: null };
+let lastWindUpdate = 0;
+
+// Standard-Position für Hamberg/Breitenbrunn
+const DEFAULT_POSITION = { lat: 49.10951, lng: 11.68453 };
+
+// ============================================================================
+// USER CONTROL TRACKING
+// ============================================================================
+map.on('dragstart', () => { 
+  userHasControl = true;
+});
+
+map.on('zoomstart', () => { 
+  userHasControl = true;
+});
+
+// ============================================================================
+// HYDRANTENMARKER AUS CSV
+// ============================================================================
+
         var marker = L.marker([49.10951, 11.68453], {
             icon: L.icon({
                 iconUrl: 'icons/red-dot.png',
@@ -1709,223 +1043,172 @@ function create2DHydrants() {
         }).addTo(map).bindPopup(`<b>Rettungspunkt</b><br>Rettungspunkt NM-2189 B8 Parkplatz<br>Nenndurchmesser DN: nan mm<br>FF Hamberg<br><a href='https://maps.apple.com/?daddr=49.12040024,11.71188973' target='_blank'>Apple Karten</a><br><a href='https://maps.google.com/?daddr=49.12040024,11.71188973' target='_blank'>Google Maps</a>`);
         marker.hydrantType = 'rettungspunkt';
         hydrantMarkers.push(marker);
-  
-  console.log(`✅ ${hydrantMarkers.length} 2D-Hydranten erstellt`);
-}
 
 // ============================================================================
-// AR INITIALIZATION
+// LEGENDE UND FILTER
 // ============================================================================
-async function initializeAR() {
-  if (arInitialized) return;
+function toggleLegend() {
+  const content = document.getElementById('legend-content');
+  const icon = document.getElementById('legend-toggle-icon');
   
-  console.log('📱 Initialisiere AR...');
-  showARLoading('Prüfe Kamera-Berechtigung...');
-  
-  try {
-    // Check camera permission
-    const hasCamera = await checkCameraPermission();
-    if (!hasCamera) {
-      showCameraPermission();
-      return;
-    }
-    
-    showARLoading('Lade AR-Bibliotheken...');
-    await setupARScene();
-    
-    showARLoading('Erstelle AR-Hydranten...');
-    createARHydrants();
-    
-    arInitialized = true;
-    hideARLoading();
-    
-    console.log('✅ AR initialisiert');
-  } catch (error) {
-    console.error('AR Fehler:', error);
-    alert('AR-Fehler: ' + error.message);
-    switchTo2D();
-  }
-}
-
-async function checkCameraPermission() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    stream.getTracks().forEach(track => track.stop());
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-
-function showCameraPermission() {
-  hideARLoading();
-  document.getElementById('camera-permission').style.display = 'flex';
-}
-
-async function requestCameraPermission() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ 
-      video: { facingMode: 'environment' } 
-    });
-    stream.getTracks().forEach(track => track.stop());
-    
-    document.getElementById('camera-permission').style.display = 'none';
-    await initializeAR();
-  } catch (error) {
-    alert('Kamera-Berechtigung erforderlich für AR-Funktionen!');
-    switchTo2D();
-  }
-}
-
-async function setupARScene() {
-  arScene = document.getElementById('ar-scene');
-  arCamera = document.getElementById('ar-camera');
-  
-  return new Promise((resolve) => {
-    if (arScene.hasLoaded) {
-      resolve();
-    } else {
-      arScene.addEventListener('loaded', resolve);
-    }
-  });
-}
-
-function createARHydrants() {
-  console.log('🚰 Erstelle AR-Hydranten...');
-  const container = document.getElementById('hydrants-ar-container');
-  container.innerHTML = '';
-
-  hydrantsData.forEach((hydrant, index) => {
-    createARHydrant(hydrant, index);
-  });
-  
-  console.log(`✅ ${hydrantsData.length} AR-Hydranten erstellt`);
-}
-
-function createARHydrant(hydrant, index) {
-  const hydrantEntity = document.createElement('a-entity');
-  
-  // Set GPS position
-  hydrantEntity.setAttribute('gps-entity-place', `latitude: ${hydrant.lat}; longitude: ${hydrant.lng}`);
-  hydrantEntity.setAttribute('id', `ar-hydrant-${index}`);
-  
-  // Create 3D hydrant based on type
-  const colors = {
-    'überflurhydrant': '#ff4444',
-    'unterflurhydrant': '#4444ff',
-    'rettungspunkt': '#44ff44',
-    'wasserbehälter': '#ffff44',
-    'sperrpunkt': '#ff44ff'
-  };
-  
-  const shapes = {
-    'überflurhydrant': 'cylinder',
-    'unterflurhydrant': 'box',
-    'rettungspunkt': 'sphere',
-    'wasserbehälter': 'dodecahedron',
-    'sperrpunkt': 'octahedron'
-  };
-
-  const color = colors[hydrant.type] || '#ff4444';
-  const shape = shapes[hydrant.type] || 'cylinder';
-
-  // Main shape
-  const shapeEl = document.createElement(`a-${shape}`);
-  if (shape === 'cylinder') {
-    shapeEl.setAttribute('radius', '0.5');
-    shapeEl.setAttribute('height', '2');
-  } else if (shape === 'box') {
-    shapeEl.setAttribute('width', '1');
-    shapeEl.setAttribute('height', '1');
-    shapeEl.setAttribute('depth', '1');
+  if (content.classList.contains('collapsed')) {
+    content.classList.remove('collapsed');
+    icon.textContent = '▼';
   } else {
-    shapeEl.setAttribute('radius', '0.8');
-  }
-  
-  shapeEl.setAttribute('material', `color: ${color}; emissive: ${color}; emissiveIntensity: 0.3`);
-  shapeEl.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 6000');
-  hydrantEntity.appendChild(shapeEl);
-
-  // Info text
-  const textEl = document.createElement('a-text');
-  textEl.setAttribute('value', `${hydrant.description}\n${hydrant.type}\n${hydrant.size}`);
-  textEl.setAttribute('position', '0 2 0');
-  textEl.setAttribute('align', 'center');
-  textEl.setAttribute('color', '#ffffff');
-  textEl.setAttribute('scale', '3 3 3');
-  textEl.setAttribute('look-at', '[camera]');
-  hydrantEntity.appendChild(textEl);
-
-  document.getElementById('hydrants-ar-container').appendChild(hydrantEntity);
-}
-
-function showARLoading(message) {
-  document.getElementById('ar-loading-step').textContent = message;
-  document.getElementById('ar-loading').style.display = 'flex';
-}
-
-function hideARLoading() {
-  document.getElementById('ar-loading').style.display = 'none';
-}
-
-// ============================================================================
-// MODE SWITCHING
-// ============================================================================
-function switchTo2D() {
-  console.log('🗺️ Wechsle zu 2D-Modus');
-  
-  currentMode = '2d';
-  
-  // Update UI
-  document.getElementById('mode-2d-btn').classList.add('active');
-  document.getElementById('mode-ar-btn').classList.remove('active');
-  document.getElementById('mode-value').textContent = '2D-Modus';
-  
-  // Show/Hide containers
-  document.getElementById('map-container').classList.add('active');
-  document.getElementById('ar-container').classList.remove('active');
-  
-  // Show/Hide controls
-  document.querySelectorAll('.map-only').forEach(el => el.style.display = 'flex');
-  document.querySelectorAll('.ar-only').forEach(el => el.style.display = 'none');
-  
-  // Hide AR overlays
-  hideARLoading();
-  document.getElementById('camera-permission').style.display = 'none';
-  
-  // Resize map
-  if (map) {
-    setTimeout(() => map.invalidateSize(), 100);
+    content.classList.add('collapsed');
+    icon.textContent = '▶';
   }
 }
 
-async function switchToAR() {
-  console.log('📱 Wechsle zu AR-Modus');
+function toggleAllFilters(checkbox) {
+  const checkboxes = document.querySelectorAll('.legend-items input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    cb.checked = checkbox.checked;
+  });
+  filterMarkers();
+}
+
+function filterMarkers() {
+  const checkboxes = document.querySelectorAll('.legend-items input[type="checkbox"]');
+  const activeTypes = [];
   
-  currentMode = 'ar';
+  checkboxes.forEach(cb => {
+    if (cb.checked) {
+      activeTypes.push(cb.dataset.type);
+    }
+  });
   
-  // Update UI
-  document.getElementById('mode-ar-btn').classList.add('active');
-  document.getElementById('mode-2d-btn').classList.remove('active');
-  document.getElementById('mode-value').textContent = 'AR-Modus';
+  hydrantMarkers.forEach(marker => {
+    if (activeTypes.includes(marker.hydrantType)) {
+      marker.addTo(map);
+    } else {
+      marker.remove();
+    }
+  });
   
-  // Show/Hide containers
-  document.getElementById('ar-container').classList.add('active');
-  document.getElementById('map-container').classList.remove('active');
-  
-  // Show/Hide controls
-  document.querySelectorAll('.map-only').forEach(el => el.style.display = 'none');
-  document.querySelectorAll('.ar-only').forEach(el => el.style.display = 'flex');
-  
-  // Initialize AR if needed
-  if (!arInitialized) {
-    await initializeAR();
-  }
+  const allCheckbox = document.getElementById('filter-all');
+  allCheckbox.checked = activeTypes.length === checkboxes.length;
 }
 
 // ============================================================================
-// GPS UND POSITION (COMMON)
+// THEME-WECHSEL
 // ============================================================================
+function toggleTheme() {
+  map.removeLayer(themes[currentThemeIndex]);
+  currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+  map.addLayer(themes[currentThemeIndex]);
+  console.log('Karte gewechselt zu:', themeNames[currentThemeIndex]);
+}
+
+// ============================================================================
+// ERWEITERTE TASCHENLAMPE (3 MODI)
+// ============================================================================
+async function toggleFlashlight() {
+  const toggleBtn = document.getElementById('flashlight-toggle');
+  const label = document.getElementById('flashlight-label');
+  
+  try {
+    // Aktuellen Modus stoppen
+    if (flashlightStream) {
+      const track = flashlightStream.getVideoTracks()[0];
+      await track.applyConstraints({ advanced: [{ torch: false }] });
+      
+      if (flashlightMode === 0) {
+        flashlightStream.getTracks().forEach(track => track.stop());
+        flashlightStream = null;
+      }
+    }
+    
+    if (flashlightBlinkInterval) {
+      clearInterval(flashlightBlinkInterval);
+      flashlightBlinkInterval = null;
+    }
+    
+    // Nächsten Modus setzen (0 → 1 → 2 → 0)
+    flashlightMode = (flashlightMode + 1) % 3;
+    
+    switch (flashlightMode) {
+      case 0: // AUS
+        toggleBtn.classList.remove('active', 'blinking');
+        label.textContent = 'Aus';
+        break;
+        
+      case 1: // EIN
+        await startFlashlight();
+        toggleBtn.classList.add('active');
+        toggleBtn.classList.remove('blinking');
+        label.textContent = 'Ein';
+        break;
+        
+      case 2: // BLINKEND
+        await startBlinkingFlashlight();
+        toggleBtn.classList.remove('active');
+        toggleBtn.classList.add('blinking');
+        label.textContent = 'Blink';
+        break;
+    }
+    
+  } catch (error) {
+    console.error('Taschenlampe-Fehler:', error);
+    alert('Taschenlampe ist auf diesem Gerät nicht verfügbar');
+    flashlightMode = 0;
+    toggleBtn.classList.remove('active', 'blinking');
+    label.textContent = 'Aus';
+  }
+}
+
+async function startFlashlight() {
+  if (!flashlightStream) {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const track = stream.getVideoTracks()[0];
+    const capabilities = track.getCapabilities();
+    
+    if (!capabilities.torch) {
+      throw new Error('Taschenlampe nicht verfügbar');
+    }
+    
+    flashlightStream = stream;
+  }
+  
+  const track = flashlightStream.getVideoTracks()[0];
+  await track.applyConstraints({ advanced: [{ torch: true }] });
+}
+
+async function startBlinkingFlashlight() {
+  if (!flashlightStream) {
+    await startFlashlight();
+  }
+  
+  const track = flashlightStream.getVideoTracks()[0];
+  
+  flashlightBlinkInterval = setInterval(async () => {
+    try {
+      await track.applyConstraints({ advanced: [{ torch: true }] });
+      setTimeout(async () => {
+        try {
+          await track.applyConstraints({ advanced: [{ torch: false }] });
+        } catch (error) {
+          console.error('Blinklicht aus Fehler:', error);
+        }
+      }, 500);
+    } catch (error) {
+      console.error('Blinklicht an Fehler:', error);
+    }
+  }, 1000);
+}
+
+// ============================================================================
+// GPS UND POSITION
+// ============================================================================
+function gotoUserLocation() {
+  userHasControl = false;
+  if (userMarker) {
+    map.setView(userMarker.getLatLng(), 17);
+  } else {
+    startLocationTracking();
+  }
+}
+
 function startLocationTracking() {
   if ("geolocation" in navigator) {
     const options = {
@@ -1962,12 +1245,10 @@ function onLocationSuccess(position) {
     document.getElementById('altitude-value').textContent = `${currentAltitude} m`;
   }
   
-  // Update position in current mode
-  if (currentMode === '2d' && map) {
-    updateUserPositionOnMap(lat, lng, accuracy);
-    if (!userHasControl) {
-      map.setView([lat, lng], 17);
-    }
+  updateUserPositionOnMap(lat, lng, accuracy);
+  
+  if (!userHasControl) {
+    map.setView([lat, lng], 17);
   }
   
   updateWindData(true);
@@ -1990,8 +1271,6 @@ function updateGPSStatus(accuracy) {
 }
 
 function updateUserPositionOnMap(lat, lng, accuracy) {
-  if (currentMode !== '2d' || !map) return;
-  
   // Alte Marker entfernen
   if (userMarker) map.removeLayer(userMarker);
   if (cone) map.removeLayer(cone);
@@ -2050,22 +1329,78 @@ function onLocationError(error) {
   }
 }
 
-function gotoUserLocation() {
-  userHasControl = false;
-  if (currentMode === '2d' && userMarker) {
-    map.setView(userMarker.getLatLng(), 17);
-  } else if (currentMode === '2d') {
-    startLocationTracking();
+function getConePoints(center, angleDeg, radius = 40, spread = 45) {
+  const [lat, lng] = center;
+  const angleRad = (angleDeg * Math.PI) / 180;
+  const spreadRad = (spread * Math.PI) / 180;
+  const points = [[lat, lng]];
+  
+  for (let a = -spreadRad / 2; a <= spreadRad / 2; a += spreadRad / 15) {
+    const dx = radius * Math.sin(angleRad + a);
+    const dy = radius * Math.cos(angleRad + a);
+    const dLat = dy / 111111;
+    const dLng = dx / (111111 * Math.cos((lat * Math.PI) / 180));
+    points.push([lat + dLat, lng + dLng]);
   }
-  // AR mode automatically centers on user
+  
+  return points;
 }
 
 // ============================================================================
-// WIND FUNCTIONS (HYBRID)
+// VERBESSERTE WINDPFEIL-FUNKTIONEN
+// ============================================================================
+function toggleWindArrow() {
+  windArrowActive = !windArrowActive;
+  const toggleBtn = document.getElementById('wind-toggle');
+  
+  if (windArrowActive) {
+    toggleBtn.classList.add('active');
+    updateWindArrow();
+  } else {
+    toggleBtn.classList.remove('active');
+    removeWindArrow(); // Verwende neue Funktion
+  }
+}
+
+// NEUE FUNKTION: Saubere Entfernung des Windpfeils
+function removeWindArrow() {
+  if (windArrowLine) {
+    map.removeLayer(windArrowLine);
+    windArrowLine = null;
+  }
+  if (windArrowHead) {
+    map.removeLayer(windArrowHead);
+    windArrowHead = null;
+  }
+}
+
+// ============================================================================
+// WINDDATEN MIT OPEN-METEO API
 // ============================================================================
 function getWindDirection(degrees) {
   const dirs = ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW'];
   return dirs[Math.round(((degrees % 360) / 45)) % 8];
+}
+
+async function fetchWithTimeout(url, options = {}) {
+  const { timeout = 10000 } = options;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout');
+    }
+    throw error;
+  }
 }
 
 async function updateWindData(force = false) {
@@ -2079,8 +1414,9 @@ async function updateWindData(force = false) {
     
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${position.lat}&longitude=${position.lng}&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=kmh&timezone=Europe/Berlin`;
     
-    const response = await fetch(url, { 
-      cache: 'no-store'
+    const response = await fetchWithTimeout(url, { 
+      cache: 'no-store',
+      timeout: 8000 
     });
     
     if (!response.ok) {
@@ -2108,67 +1444,48 @@ async function updateWindData(force = false) {
   } catch (error) {
     console.warn('⚠️ Wind-Daten Fehler:', error.message);
     document.getElementById('wind-value').textContent = 'Wind: -- km/h';
+    
+    if (force) {
+      setTimeout(() => updateWindData(true), 30000);
+    }
   }
 }
 
-function toggleWindArrow() {
-  windArrowActive = !windArrowActive;
-  const toggleBtn = document.getElementById('wind-toggle');
-  
-  if (windArrowActive) {
-    toggleBtn.classList.add('active');
-    updateWindArrow();
-  } else {
-    toggleBtn.classList.remove('active');
-    removeWindArrow();
-  }
-}
-
+// NEUE VERBESSERTE WINDPFEIL-FUNKTION
 function updateWindArrow() {
-  if (currentMode === '2d') {
-    update2DWindArrow();
-  } else if (currentMode === 'ar') {
-    updateARWindArrow();
-  }
-}
-
-function update2DWindArrow() {
-  if (!map) return;
-  
-  // Remove existing arrows
-  if (windArrowLine) {
-    map.removeLayer(windArrowLine);
-    windArrowLine = null;
-  }
-  if (windArrowHead) {
-    map.removeLayer(windArrowHead);
-    windArrowHead = null;
-  }
+  // Erst alles entfernen
+  removeWindArrow();
   
   if (!windArrowActive || !userPosition || 
       windData.degrees === null || windData.speed === null) {
     return;
   }
   
+  // Nur anzeigen wenn Wind > 3 km/h
   if (windData.speed < 3) return;
   
+  // DEZENTER BLAUER PFEIL - ZEIGT WOHIN DER WIND WEHT
   const arrowLength = Math.min(80, Math.max(25, windData.speed * 1.5));
+  
+  // Windrichtung um 180° drehen: zeigt wohin der Wind weht (nicht woher er kommt)
   const windToDirection = (windData.degrees + 180) % 360;
   const windRad = (windToDirection * Math.PI) / 180;
   
   const endLat = userPosition.lat + (arrowLength * Math.cos(windRad)) / 111111;
   const endLng = userPosition.lng + (arrowLength * Math.sin(windRad)) / (111111 * Math.cos(userPosition.lat * Math.PI / 180));
   
+  // Dezente blaue Linie (gestrichelt)
   windArrowLine = L.polyline([
     [userPosition.lat, userPosition.lng],
     [endLat, endLng]
   ], {
-    color: '#2196F3',
-    weight: 3,
-    opacity: 0.6,
-    dashArray: '5, 3'
+    color: '#2196F3',     // Blau
+    weight: 3,            // Dünner
+    opacity: 0.6,         // Transparent
+    dashArray: '5, 3'     // Gestrichelt
   }).addTo(map);
   
+  // Kleine dezente Pfeilspitze (zeigt wohin der Wind weht)
   windArrowHead = L.polygon(getArrowHeadPoints([endLat, endLng], windToDirection), {
     color: '#2196F3',
     fillColor: '#2196F3',
@@ -2176,6 +1493,7 @@ function update2DWindArrow() {
     weight: 2
   }).addTo(map);
   
+  // Tooltip für beide Teile
   const gustText = windData.gusts && windData.gusts > windData.speed 
     ? ` / Böen: ${windData.gusts} km/h` : '';
   const tooltip = `💨 Wind: ${windData.speed} km/h aus ${windData.direction} → weht nach ${getWindDirection(windToDirection)} (${windData.degrees}°)${gustText}`;
@@ -2184,195 +1502,36 @@ function update2DWindArrow() {
   windArrowHead.bindTooltip(tooltip, { permanent: false, direction: 'top' });
 }
 
-function updateARWindArrow() {
-  const arWindArrow = document.getElementById('wind-ar-arrow');
+function getArrowHeadPoints(center, windFromDeg, size = 10) {
+  const [lat, lng] = center;
+  const rad = (windFromDeg * Math.PI) / 180;
   
-  if (windArrowActive && windData.degrees !== null && windData.speed !== null && windData.speed >= 3) {
-    arWindArrow.setAttribute('rotation', `0 ${windData.degrees} 0`);
-    arWindArrow.setAttribute('visible', 'true');
-  } else {
-    arWindArrow.setAttribute('visible', 'false');
-  }
-}
-
-function removeWindArrow() {
-  if (currentMode === '2d') {
-    if (windArrowLine) {
-      map.removeLayer(windArrowLine);
-      windArrowLine = null;
-    }
-    if (windArrowHead) {
-      map.removeLayer(windArrowHead);
-      windArrowHead = null;
-    }
-  } else if (currentMode === 'ar') {
-    const arWindArrow = document.getElementById('wind-ar-arrow');
-    if (arWindArrow) {
-      arWindArrow.setAttribute('visible', 'false');
-    }
-  }
+  const tip_lat = lat;
+  const tip_lng = lng;
+  
+  const base1_lat = lat - (size * Math.cos(rad - 0.4)) / 111111;
+  const base1_lng = lng - (size * Math.sin(rad - 0.4)) / (111111 * Math.cos(lat * Math.PI / 180));
+  
+  const base2_lat = lat - (size * Math.cos(rad + 0.4)) / 111111;
+  const base2_lng = lng - (size * Math.sin(rad + 0.4)) / (111111 * Math.cos(lat * Math.PI / 180));
+  
+  return [[tip_lat, tip_lng], [base1_lat, base1_lng], [base2_lat, base2_lng]];
 }
 
 // ============================================================================
-// CONTROL FUNCTIONS (HYBRID)
+// KOMPASS
 // ============================================================================
-async function toggleFlashlight() {
-  const toggleBtn = document.getElementById('flashlight-toggle');
-  const label = document.getElementById('flashlight-label');
-  
-  try {
-    if (flashlightStream) {
-      const track = flashlightStream.getVideoTracks()[0];
-      await track.applyConstraints({ advanced: [{ torch: false }] });
-      
-      if (flashlightMode === 0) {
-        flashlightStream.getTracks().forEach(track => track.stop());
-        flashlightStream = null;
-      }
-    }
-    
-    if (flashlightBlinkInterval) {
-      clearInterval(flashlightBlinkInterval);
-      flashlightBlinkInterval = null;
-    }
-    
-    flashlightMode = (flashlightMode + 1) % 3;
-    
-    switch (flashlightMode) {
-      case 0:
-        toggleBtn.classList.remove('active', 'blinking');
-        label.textContent = 'Aus';
-        break;
-        
-      case 1:
-        await startFlashlight();
-        toggleBtn.classList.add('active');
-        toggleBtn.classList.remove('blinking');
-        label.textContent = 'Ein';
-        break;
-        
-      case 2:
-        await startBlinkingFlashlight();
-        toggleBtn.classList.remove('active');
-        toggleBtn.classList.add('blinking');
-        label.textContent = 'Blink';
-        break;
-    }
-    
-  } catch (error) {
-    console.error('Taschenlampe-Fehler:', error);
-    alert('Taschenlampe ist auf diesem Gerät nicht verfügbar');
-    flashlightMode = 0;
-    toggleBtn.classList.remove('active', 'blinking');
-    label.textContent = 'Aus';
-  }
-}
-
-async function startFlashlight() {
-  if (!flashlightStream) {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    const track = stream.getVideoTracks()[0];
-    const capabilities = track.getCapabilities();
-    
-    if (!capabilities.torch) {
-      throw new Error('Taschenlampe nicht verfügbar');
-    }
-    
-    flashlightStream = stream;
-  }
-  
-  const track = flashlightStream.getVideoTracks()[0];
-  await track.applyConstraints({ advanced: [{ torch: true }] });
-}
-
-async function startBlinkingFlashlight() {
-  if (!flashlightStream) {
-    await startFlashlight();
-  }
-  
-  const track = flashlightStream.getVideoTracks()[0];
-  
-  flashlightBlinkInterval = setInterval(async () => {
-    try {
-      await track.applyConstraints({ advanced: [{ torch: true }] });
-      setTimeout(async () => {
-        try {
-          await track.applyConstraints({ advanced: [{ torch: false }] });
-        } catch (error) {
-          console.error('Blinklicht aus Fehler:', error);
-        }
-      }, 500);
-    } catch (error) {
-      console.error('Blinklicht an Fehler:', error);
-    }
-  }, 1000);
-}
-
-function findNearestHydrant() {
-  if (!userPosition) {
-    alert('Position noch nicht verfügbar. Bitte warten Sie auf GPS-Signal.');
-    return;
-  }
-  
-  let nearest = null;
-  let minDistance = Infinity;
-  
-  if (currentMode === '2d' && hydrantMarkers.length > 0) {
-    hydrantMarkers.forEach(marker => {
-      if (map.hasLayer(marker)) {
-        const hydrantPos = marker.getLatLng();
-        const distance = calculateDistance(
-          userPosition.lat, userPosition.lng,
-          hydrantPos.lat, hydrantPos.lng
-        );
-        
-        if (distance < minDistance) {
-          minDistance = distance;
-          nearest = marker;
-        }
-      }
-    });
-    
-    if (nearest) {
-      map.setView(nearest.getLatLng(), 18);
-      nearest.openPopup();
-    }
-  } else if (currentMode === 'ar' && hydrantsData.length > 0) {
-    hydrantsData.forEach(hydrant => {
-      const distance = calculateDistance(
-        userPosition.lat, userPosition.lng,
-        hydrant.lat, hydrant.lng
-      );
-      
-      if (distance < minDistance) {
-        minDistance = distance;
-        nearest = hydrant;
-      }
-    });
-    
-    console.log(`🔍 Nächster Hydrant (AR): ${nearest.description} (${Math.round(minDistance)}m)`);
-  }
-  
-  if (!nearest) {
-    alert('Keine Hydranten in der Nähe gefunden.');
-  }
-}
-
-function toggleTheme() {
-  if (currentMode !== '2d' || !map) return;
-  
-  map.removeLayer(window.themes[currentThemeIndex]);
-  currentThemeIndex = (currentThemeIndex + 1) % window.themes.length;
-  map.addLayer(window.themes[currentThemeIndex]);
-  console.log('Karte gewechselt zu:', window.themeNames[currentThemeIndex]);
-}
-
 function toggleCompass() {
   if (!compassActive) {
     requestCompassPermission();
   } else {
     compassActive = false;
     document.getElementById('compass-toggle').classList.remove('active');
+    if (orientationHandler) {
+      window.removeEventListener('deviceorientation', orientationHandler);
+      window.removeEventListener('deviceorientationabsolute', orientationHandler);
+      orientationHandler = null;
+    }
   }
 }
 
@@ -2399,7 +1558,7 @@ function requestCompassPermission() {
 }
 
 function setupOrientationListener() {
-  function orientationHandler(event) {
+  orientationHandler = function(event) {
     if (!compassActive) return;
     
     let heading = null;
@@ -2415,7 +1574,7 @@ function setupOrientationListener() {
     if (heading !== null) {
       updateHeading(heading);
     }
-  }
+  };
   
   if (window.DeviceOrientationEvent) {
     window.addEventListener('deviceorientation', orientationHandler, true);
@@ -2426,51 +1585,126 @@ function setupOrientationListener() {
   }
 }
 
+function degreesToCardinal(deg) {
+  const dirs = ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW'];
+  return dirs[Math.round(((deg % 360) / 45)) % 8];
+}
+
 function updateHeading(heading) {
   currentHeading = (heading + 360) % 360;
   
   const dir = degreesToCardinal(currentHeading);
   document.getElementById('degree-value').textContent = `${Math.round(currentHeading)}° (${dir})`;
   
-  if (cone && userPosition && currentMode === '2d') {
+  if (cone && userPosition) {
     cone.setLatLngs(getConePoints([userPosition.lat, userPosition.lng], currentHeading));
   }
 }
 
-function recalibrateAR() {
-  if (currentMode !== 'ar') return;
+// ============================================================================
+// NÄCHSTER HYDRANT
+// ============================================================================
+function findNearestHydrant() {
+  if (!userPosition) {
+    alert('Position noch nicht verfügbar. Bitte warten Sie auf GPS-Signal.');
+    return;
+  }
   
-  // Recalibrate AR tracking
-  if (arScene && arScene.systems && arScene.systems.arjs) {
-    location.reload();
+  if (hydrantLineTimer) {
+    clearTimeout(hydrantLineTimer);
+    hydrantLineTimer = null;
+  }
+  
+  if (nearestHydrantLine) {
+    map.removeLayer(nearestHydrantLine);
+    nearestHydrantLine = null;
+  }
+  
+  let nearest = null;
+  let minDistance = Infinity;
+  
+  hydrantMarkers.forEach(marker => {
+    if (map.hasLayer(marker)) {
+      const hydrantPos = marker.getLatLng();
+      const distance = calculateDistance(
+        userPosition.lat, userPosition.lng,
+        hydrantPos.lat, hydrantPos.lng
+      );
+      
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearest = marker;
+      }
+    }
+  });
+  
+  if (nearest) {
+    map.setView(nearest.getLatLng(), 18);
+    nearest.openPopup();
+    
+    nearestHydrantLine = L.polyline([
+      [userPosition.lat, userPosition.lng],
+      nearest.getLatLng()
+    ], {
+      color: '#4CAF50',
+      weight: 3,
+      opacity: 0.8,
+      dashArray: '10, 5'
+    }).addTo(map).bindPopup(`→ Entfernung: ${Math.round(minDistance)} m`);
+    
+    hydrantLineTimer = setTimeout(() => {
+      if (nearestHydrantLine) {
+        map.removeLayer(nearestHydrantLine);
+        nearestHydrantLine = null;
+      }
+      hydrantLineTimer = null;
+    }, 15000);
+  } else {
+    alert('Keine Hydranten in der Nähe gefunden.');
   }
 }
 
+function calculateDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+// ============================================================================
+// VERBESSERTE TEILEN-FUNKTION (MIT LINK ZUR INDEX.HTML)
+// ============================================================================
 function captureScreenshot() {
   const position = userPosition || DEFAULT_POSITION;
   const lat = position.lat.toFixed(6);
   const lng = position.lng.toFixed(6);
   
-  const baseUrl = window.location.href.split('?')[0];
-  const hydrantenkarteUrl = `${baseUrl}?lat=${lat}&lng=${lng}&zoom=17&mode=${currentMode}`;
+  // Link zur eigenen Hydrantenkarte mit Koordinaten
+  const baseUrl = window.location.href.split('?')[0]; // Ohne vorhandene Parameter
+  const hydrantenkarteUrl = `${baseUrl}?lat=${lat}&lng=${lng}&zoom=17`;
   
+  // Zusätzlich direkte Karten-Links
   const googleMapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
   const appleMapsUrl = `https://maps.apple.com/?q=${lat},${lng}`;
   
   const shareData = {
     title: '🚒 Feuerwehr Hamberg - Einsatzort',
-    text: `🚨 Einsatzort: ${lat}, ${lng}\nModus: ${currentMode.toUpperCase()}\nRichtung: ${Math.round(currentHeading)}° (${degreesToCardinal(currentHeading)})${windData.speed ? '\nWind: ' + windData.speed + ' km/h → weht nach ' + getWindDirection((windData.degrees + 180) % 360) + ' (' + windData.degrees + '°)' : ''}\n\n🚒 Hydrantenkarte: ${hydrantenkarteUrl}`,
+    text: `🚨 Einsatzort: ${lat}, ${lng}\nRichtung: ${Math.round(currentHeading)}° (${degreesToCardinal(currentHeading)})${windData.speed ? '\nWind: ' + windData.speed + ' km/h → weht nach ' + getWindDirection((windData.degrees + 180) % 360) + ' (' + windData.degrees + '°)' : ''}\n\n🚒 Hydrantenkarte: ${hydrantenkarteUrl}`,
     url: hydrantenkarteUrl
   };
   
   if (navigator.share) {
     navigator.share(shareData).catch(console.error);
   } else {
-    const shareText = `🚒 Feuerwehr Hamberg - Einsatzort\n\n📍 Koordinaten: ${lat}, ${lng}\n📱 Modus: ${currentMode.toUpperCase()}\n🧭 Richtung: ${Math.round(currentHeading)}° (${degreesToCardinal(currentHeading)})${windData.speed ? '\n💨 Wind: ' + windData.speed + ' km/h → weht nach ' + getWindDirection((windData.degrees + 180) % 360) + ' (' + windData.degrees + '°)' : ''}\n\n🚒 Hydrantenkarte:\n${hydrantenkarteUrl}\n\n📱 Google Maps:\n${googleMapsUrl}\n\n🍎 Apple Maps:\n${appleMapsUrl}`;
+    const shareText = `🚒 Feuerwehr Hamberg - Einsatzort\n\n📍 Koordinaten: ${lat}, ${lng}\n🧭 Richtung: ${Math.round(currentHeading)}° (${degreesToCardinal(currentHeading)})${windData.speed ? '\n💨 Wind: ' + windData.speed + ' km/h → weht nach ' + getWindDirection((windData.degrees + 180) % 360) + ' (' + windData.degrees + '°)' : ''}\n\n🚒 Hydrantenkarte:\n${hydrantenkarteUrl}\n\n📱 Google Maps:\n${googleMapsUrl}\n\n🍎 Apple Maps:\n${appleMapsUrl}`;
     
     if (navigator.clipboard) {
       navigator.clipboard.writeText(shareText).then(() => {
-        alert('🚒 Einsatzort-Information kopiert!\n\nInklusive Modus und Link zur Hydrantenkarte.');
+        alert('🚒 Einsatzort-Information kopiert!\n\nInklusive Link zur Hydrantenkarte und Karten-Apps.');
       });
     } else {
       const textarea = document.createElement('textarea');
@@ -2485,113 +1719,15 @@ function captureScreenshot() {
 }
 
 // ============================================================================
-// LEGEND FUNCTIONS
-// ============================================================================
-function toggleLegend() {
-  const content = document.getElementById('legend-content');
-  const icon = document.getElementById('legend-toggle-icon');
-  
-  if (content.classList.contains('collapsed')) {
-    content.classList.remove('collapsed');
-    icon.textContent = '▼';
-  } else {
-    content.classList.add('collapsed');
-    icon.textContent = '▶';
-  }
-}
-
-function toggleAllFilters(checkbox) {
-  const checkboxes = document.querySelectorAll('.legend-items input[type="checkbox"]');
-  checkboxes.forEach(cb => {
-    cb.checked = checkbox.checked;
-  });
-  filterMarkers();
-}
-
-function filterMarkers() {
-  if (currentMode !== '2d') return;
-  
-  const checkboxes = document.querySelectorAll('.legend-items input[type="checkbox"]');
-  const activeTypes = [];
-  
-  checkboxes.forEach(cb => {
-    if (cb.checked) {
-      activeTypes.push(cb.dataset.type);
-    }
-  });
-  
-  hydrantMarkers.forEach(marker => {
-    if (activeTypes.includes(marker.hydrantType)) {
-      marker.addTo(map);
-    } else {
-      marker.remove();
-    }
-  });
-  
-  const allCheckbox = document.getElementById('filter-all');
-  allCheckbox.checked = activeTypes.length === checkboxes.length;
-}
-
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-function calculateDistance(lat1, lng1, lat2, lng2) {
-  const R = 6371000;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLng/2) * Math.sin(dLng/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-}
-
-function degreesToCardinal(deg) {
-  const dirs = ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW'];
-  return dirs[Math.round(((deg % 360) / 45)) % 8];
-}
-
-function getConePoints(center, angleDeg, radius = 40, spread = 45) {
-  const [lat, lng] = center;
-  const angleRad = (angleDeg * Math.PI) / 180;
-  const spreadRad = (spread * Math.PI) / 180;
-  const points = [[lat, lng]];
-  
-  for (let a = -spreadRad / 2; a <= spreadRad / 2; a += spreadRad / 15) {
-    const dx = radius * Math.sin(angleRad + a);
-    const dy = radius * Math.cos(angleRad + a);
-    const dLat = dy / 111111;
-    const dLng = dx / (111111 * Math.cos((lat * Math.PI) / 180));
-    points.push([lat + dLat, lng + dLng]);
-  }
-  
-  return points;
-}
-
-function getArrowHeadPoints(center, windFromDeg, size = 10) {
-  const [lat, lng] = center;
-  const rad = (windFromDeg * Math.PI) / 180;
-  
-  const tip_lat = lat;
-  const tip_lng = lng;
-  
-  const base1_lat = lat - (size * Math.cos(rad - 0.4)) / 111111;
-  const base1_lng = lng - (size * Math.sin(rad - 0.4)) / (111111 * Math.cos(lat * Math.PI / 180));
-  
-  const base2_lat = lat - (size * Math.cos(rad + 0.4)) / 111111;
-  const base2_lng = lng - (size * Math.sin(rad + 0.4)) / (111111 * Math.cos(lat * Math.PI / 180));
-  
-  return [[tip_lat, tip_lng], [base1_lat, base1_lng], [base2_lat, base2_lng]];
-}
-
-// ============================================================================
-// OFFLINE MANAGEMENT
+// OFFLINE-MANAGEMENT
 // ============================================================================
 window.addEventListener('online', () => {
+  isOffline = false;
   document.getElementById('offline-indicator').classList.remove('visible');
 });
 
 window.addEventListener('offline', () => {
+  isOffline = true;
   document.getElementById('offline-indicator').classList.add('visible');
 });
 
@@ -2600,80 +1736,19 @@ if (!navigator.onLine) {
 }
 
 // ============================================================================
-// INITIALIZATION
+// PAGE VISIBILITY
 // ============================================================================
-window.addEventListener('load', function() {
-  console.log('🚒 Hydrantenkarte Hybrid wird initialisiert...');
-  
-  // Check URL parameters
-  const urlParams = new URLSearchParams(window.location.search);
-  const sharedLat = urlParams.get('lat');
-  const sharedLng = urlParams.get('lng');
-  const sharedZoom = urlParams.get('zoom');
-  const sharedMode = urlParams.get('mode');
-  
-  // Initialize 2D Map
-  initialize2DMap();
-  
-  // Handle shared position
-  if (sharedLat && sharedLng) {
-    const lat = parseFloat(sharedLat);
-    const lng = parseFloat(sharedLng);
-    const zoom = sharedZoom ? parseInt(sharedZoom) : 17;
-    
-    console.log('📍 Geteilte Position erkannt:', lat, lng);
-    
-    if (map) {
-      map.setView([lat, lng], zoom);
-      
-      L.marker([lat, lng], {
-        icon: L.icon({
-          iconUrl: 'data:image/svg+xml;base64,' + btoa(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-              <circle cx="16" cy="16" r="12" fill="#ff4444" stroke="#fff" stroke-width="2"/>
-              <text x="16" y="21" text-anchor="middle" fill="white" font-size="16">🚒</text>
-            </svg>
-          `),
-          iconSize: [32, 32],
-          iconAnchor: [16, 32]
-        })
-      }).addTo(map).bindPopup(`
-        <b>🚨 Geteilter Einsatzort</b><br>
-        📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}<br>
-        <small>Von einem anderen Feuerwehr-Gerät geteilt</small>
-      `).openPopup();
-    }
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && watchId) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+  } else if (!document.hidden && !watchId) {
+    startLocationTracking();
   }
-  
-  // Switch to shared mode if specified
-  if (sharedMode === 'ar') {
-    setTimeout(() => switchToAR(), 1000);
-  }
-  
-  // Start location tracking
-  startLocationTracking();
-  
-  // Start wind updates
-  setTimeout(() => updateWindData(true), 2000);
-  setInterval(() => updateWindData(false), 600000);
-  
-  // Auto-enable compass on iOS
-  setTimeout(() => {
-    if (isIOS || confirm('Kompass aktivieren für bessere Navigation?')) {
-      toggleCompass();
-    }
-  }, 3000);
-  
-  // Collapse legend on mobile
-  if (window.innerWidth < 768) {
-    setTimeout(() => toggleLegend(), 500);
-  }
-  
-  console.log('✅ Hydrantenkarte Hybrid vollständig geladen');
 });
 
 // ============================================================================
-// CLEANUP
+// EVENT LISTENER & CLEANUP
 // ============================================================================
 window.addEventListener('beforeunload', function() {
   if (watchId) {
@@ -2687,20 +1762,91 @@ window.addEventListener('beforeunload', function() {
   if (flashlightBlinkInterval) {
     clearInterval(flashlightBlinkInterval);
   }
+  
+  if (orientationHandler) {
+    window.removeEventListener('deviceorientation', orientationHandler);
+    window.removeEventListener('deviceorientationabsolute', orientationHandler);
+  }
 });
 
 // ============================================================================
-// RESPONSIVE HANDLING
+// INITIALISIERUNG (MIT URL-PARAMETER SUPPORT)
+// ============================================================================
+window.addEventListener('load', function() {
+  console.log('🚒 Hydrantenkarte Hamberg wird initialisiert...');
+  
+  // URL-Parameter auslesen für geteilte Positionen
+  const urlParams = new URLSearchParams(window.location.search);
+  const sharedLat = urlParams.get('lat');
+  const sharedLng = urlParams.get('lng');
+  const sharedZoom = urlParams.get('zoom');
+  
+  if (sharedLat && sharedLng) {
+    // Geteilte Position verwenden
+    const lat = parseFloat(sharedLat);
+    const lng = parseFloat(sharedLng);
+    const zoom = sharedZoom ? parseInt(sharedZoom) : 17;
+    
+    console.log('📍 Geteilte Position erkannt:', lat, lng);
+    map.setView([lat, lng], zoom);
+    
+    // Marker für geteilte Position setzen
+    L.marker([lat, lng], {
+      icon: L.icon({
+        iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+            <circle cx="16" cy="16" r="12" fill="#ff4444" stroke="#fff" stroke-width="2"/>
+            <text x="16" y="21" text-anchor="middle" fill="white" font-size="16">🚒</text>
+          </svg>
+        `),
+        iconSize: [32, 32],
+        iconAnchor: [16, 32]
+      })
+    }).addTo(map).bindPopup(`
+      <b>🚨 Geteilter Einsatzort</b><br>
+      📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}<br>
+      <small>Von einem anderen Feuerwehr-Gerät geteilt</small>
+    `).openPopup();
+  }
+  
+  // Windpfeil standardmäßig aktivieren
+  document.getElementById('wind-toggle').classList.add('active');
+  
+  startLocationTracking();
+
+  setTimeout(() => {
+    updateWindData(true);
+  }, 2000);
+
+  setInterval(() => updateWindData(false), 600000);
+  
+  setTimeout(() => {
+    if (isIOS || confirm('Kompass aktivieren für bessere Navigation?')) {
+      toggleCompass();
+    }
+  }, 3000);
+  
+  if (window.innerWidth < 768) {
+    setTimeout(() => {
+      toggleLegend();
+    }, 500);
+  }
+  
+  console.log('✅ Hydrantenkarte vollständig geladen');
+});
+
+// ============================================================================
+// RESPONSIVE ANPASSUNGEN
 // ============================================================================
 window.addEventListener('resize', () => {
-  if (map && currentMode === '2d') {
+  if (map) {
     map.invalidateSize();
   }
 });
 
 window.addEventListener('orientationchange', () => {
   setTimeout(() => {
-    if (map && currentMode === '2d') {
+    if (map) {
       map.invalidateSize();
     }
   }, 500);
