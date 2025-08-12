@@ -1,7 +1,7 @@
 
-const CACHE_NAME = 'hydrantenkarte-v7.4';
+const CACHE_NAME = 'hydrantenkarte-simple-ar-v8.1';
 const urlsToCache = [
-  'index.html',
+  'index_simple_ar.html',
   'manifest.json',
   'service-worker.js',
   'icon.png',
@@ -34,7 +34,7 @@ self.addEventListener('fetch', event => {
       .catch(error => {
         console.error('Fetch-Fehler:', error);
         if (event.request.destination === 'document') {
-          return caches.match('index.html');
+          return caches.match('index_simple_ar.html');
         }
       })
   );
