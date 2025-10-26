@@ -1,0 +1,19 @@
+{
+  "name": "Hydrantenkarte Feuerwehr Hamberg",
+  "short_name": "Hydrantenkarte",
+  "description": "Progressive Web App zur Darstellung von Feuerwehr-Hydranten und Rettungspunkten",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#d40000",
+  "orientation": "any",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "icons/feuerwehr-helm.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    }
+  ]
+}
