@@ -1,0 +1,853 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68453,
+          49.10951
+        ]
+      },
+      "properties": {
+        "type": "überflurhydrant",
+        "description": "Überflurhydrant Feuerwehrhaus",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68544,
+          49.10895
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Schöndorfer Str. 5",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68614,
+          49.10803
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Zum Spitzberg 3",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68542,
+          49.10752
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Kreuzung Zum Spitzberg / Röthenweg",
+        "size": 125,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68443,
+          49.10815
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Röthenweg 13",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68444,
+          49.10693
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Zum Spitzberg 10",
+        "size": 100,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68313,
+          49.10738
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Sonnenring 14",
+        "size": 100,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68368,
+          49.10783
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Sonnenring 8",
+        "size": 100,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68528,
+          49.10664
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Kiefergasse 5",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68546,
+          49.10597
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Rascher Str. 13",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68611,
+          49.1055
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Rascher Str. 9",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.6862,
+          49.10605
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Röthenweg 6",
+        "size": 100,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68604,
+          49.10668
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Röthenweg",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68775,
+          49.10786
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Hauptstraße 17",
+        "size": 125,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68672,
+          49.1068
+        ]
+      },
+      "properties": {
+        "type": "überflurhydrant",
+        "description": "Überflurhydrant Hauptstraße 28",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68724,
+          49.1063
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Hauptstraße 21b",
+        "size": 125,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68756,
+          49.10557
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Hauptstraße 25",
+        "size": 125,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68749,
+          49.10483
+        ]
+      },
+      "properties": {
+        "type": "überflurhydrant",
+        "description": "Überflurhydrant Hauptstraße 29",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68894,
+          49.10502
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Herrnrieder Str. 2",
+        "size": 100,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68877,
+          49.10279
+        ]
+      },
+      "properties": {
+        "type": "überflurhydrant",
+        "description": "Überflurhydrant Eichlberger Str. 12",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.6877,
+          49.10373
+        ]
+      },
+      "properties": {
+        "type": "überflurhydrant",
+        "description": "Überflurhydrant Eichlberger Str. 3",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68642,
+          49.1043
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Hauptstraße 35",
+        "size": 100,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68603,
+          49.10412
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Hauptstraße 37",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68542,
+          49.10355
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Hauptstraße 41",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68505,
+          49.10372
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Hauptstraße 46",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68749,
+          49.10288
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Eichlberger Str. 12",
+        "size": 125,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68839,
+          49.10367
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Eichlberger Str. 4",
+        "size": 100,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.67008,
+          49.11046
+        ]
+      },
+      "properties": {
+        "type": "überflurhydrant",
+        "description": "Überflurhydrant Ödberg 1",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.67348,
+          49.11063
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Ödberg 3",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.67341,
+          49.1111
+        ]
+      },
+      "properties": {
+        "type": "überflurhydrant",
+        "description": "Überflurhydrant Ödberg 4",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.6837,
+          49.11035
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Sportplatz",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68469,
+          49.11208
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Kreuzung Reitstraße/Spanbergweg",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68592,
+          49.11304
+        ]
+      },
+      "properties": {
+        "type": "überflurhydrant",
+        "description": "Überflurhydrant Gabelung Reitstraße/Winner Str.",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68668,
+          49.11292
+        ]
+      },
+      "properties": {
+        "type": "überflurhydrant",
+        "description": "Überflurhydrant Bushäuschen Schnödorf",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68606,
+          49.11328
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Winner Str. 1",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.6874,
+          49.11447
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Winner Str. 6",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68766,
+          49.11339
+        ]
+      },
+      "properties": {
+        "type": "überflurhydrant",
+        "description": "Überflurhydrant Reitstraße 20",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68577,
+          49.11098
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Hohe Trift 5",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68644,
+          49.11124
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Hohe Trift 2, Einmündung Spanbergweg",
+        "size": 150,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68653,
+          49.11065
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Hauptstraße 1",
+        "size": 150,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68699,
+          49.11
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Hauptstraße 3",
+        "size": 100,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68704,
+          49.1091
+        ]
+      },
+      "properties": {
+        "type": "überflurhydrant",
+        "description": "Überflurhydrant Hauptstraße 10",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68767,
+          49.10941
+        ]
+      },
+      "properties": {
+        "type": "wasserbehälter",
+        "description": "Löschwasserbehälter Talweg, Einmündung Pfarrgasse",
+        "size": 0,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68816,
+          49.10881
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Pfarrgasse 4",
+        "size": 100,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.69697,
+          49.11375
+        ]
+      },
+      "properties": {
+        "type": "überflurhydrant",
+        "description": "Überflurhydrant Rofen",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.69562,
+          49.11399
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Rofen",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68323,
+          49.10078
+        ]
+      },
+      "properties": {
+        "type": "überflurhydrant",
+        "description": "Überflurhydrant Ziegelhütte 1",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.68725,
+          49.10849
+        ]
+      },
+      "properties": {
+        "type": "unterflurhydrant",
+        "description": "Unterflurhydrant Kirche",
+        "size": 80,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.70373,
+          49.092199
+        ]
+      },
+      "properties": {
+        "type": "rettungspunkt",
+        "description": "Rettungspunkt Schafsee Hamberg/Eichlberg",
+        "size": 0,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.66433953,
+          49.086695
+        ]
+      },
+      "properties": {
+        "type": "rettungspunkt",
+        "description": "Rettungspunkt NM-2131 Langenthonhausen",
+        "size": 0,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.716126,
+          49.10529568
+        ]
+      },
+      "properties": {
+        "type": "rettungspunkt",
+        "description": "Rettungspunkt Feuerwehrhaus Herrnried",
+        "size": 0,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.66721575,
+          49.11173709
+        ]
+      },
+      "properties": {
+        "type": "rettungspunkt",
+        "description": "Rettungspunkt NM-2171 Ödberg",
+        "size": 0,
+        "department": "FF Hamberg"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.71188973,
+          49.12040024
+        ]
+      },
+      "properties": {
+        "type": "rettungspunkt",
+        "description": "Rettungspunkt NM-2189 B8 Parkplatz",
+        "size": 0,
+        "department": "FF Hamberg"
+      }
+    }
+  ]
+}
